@@ -116,10 +116,9 @@ void abort(void)
     while(1);
 }
 
-void exit(void)
-{
+void __attribute__ ((weak)) exit(void)  {}
+void __attribute__ ((weak)) _init(void)  {}
 
-}
 
 /**
   * @}

@@ -121,3 +121,18 @@ rtc_time_s Input_Time()
   d[col] %= 10;//0 < digit < 9
   }
 }
+
+void Get_Time_String(void* in, uint8_t* s, uint8_t view){
+  rtc_time_s temp;
+  if(!in)
+    temp = Get_Time();
+  else
+    temp = *(rtc_time_s*)in;
+  if(view == view_time)
+    snprintf(s, PCF8812_STR_SIZ, "%.2d:%.2d:%.2d", temp.hour, temp.min, temp.sec);
+  else if(view == view_date)
+    snprintf(s, PCF8812_STR_SIZ, "%.2d.%.2d.%.2d", temp.date, temp.month, temp.year);
+  else
+    snprintf(s, PCF8812_STR_SIZ, "%.2d.%.2d.%.2d %.2d:%.2d:%.2d", \
+             temp.date, temp.month, temp.year, temp.hour, temp.min, temp.sec);
+}

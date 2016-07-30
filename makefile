@@ -3,7 +3,6 @@ TARGET=NewProj
 #STM lib directory
 STM_CORE_DIR=./CMSIS/Include
 STM_DIR=./Device
-
 #User directory
 DIRS=. ./User
 #Headers & source directory
@@ -19,8 +18,8 @@ SRC_DIRS=$(STM_DIR) $(DIRS)
 #INC_DIRS+=$(MP3_DIRS)
 #SRC_DIRS+=$(MP3_DIRS)
 #Startup
-STARTUP=./Device/startup/startup_stm32f4xx.c
-#STARTUP=./Device/startup/startup_stm32f407xx.s
+#STARTUP=./Device/startup/startup_stm32f4xx.c
+STARTUP=./Device/startup/startup_stm32f407xx.s
 #Define commands
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy

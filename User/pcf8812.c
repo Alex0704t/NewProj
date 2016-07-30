@@ -476,32 +476,15 @@ void PCF8812_Triangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t x3
   PCF8812_Line(x3, y3, x2, y2);
 }
 
-void PCF8812_Time_String(struct rtc_time* in, uint8_t view, uint8_t line)
-{
-  uint8_t str[PCF8812_STR_SIZ] = "";
-  if(view == view_time)
-    snprintf(str, PCF8812_STR_SIZ, "%.2d:%.2d:%.2d", in->hour, in->min, in->sec);
-  else if(view == view_date)
-    snprintf(str, PCF8812_STR_SIZ, "%.2d.%.2d.%.2d", in->date, in->month, in->year);
-  else
-    snprintf(str, PCF8812_STR_SIZ, "%.2d.%.2d.%.2d %.2d:%.2d:%.2d", \
-             in->date, in->month, in->year, in->hour, in->min, in->sec);
-  PCF8812_Putline_Centre(str, line);
-}
-
 void PCF8812_Time(uint8_t view, uint8_t line)
 {
-  rtc_time_s in = {0};
-  in = Get_Time();
-  PCF8812_Time_String(&in, view, line);
+  uint8_t str[PCF8812_STR_SIZ] = "";
+  Get_Time_String(NULL, str, view);
+  PCF8812_Putline_Centre(str, line);
 }
 
 void PCF8812_Option(uint8_t *option, uint8_t line)
 {
-  /*
-  uint8_t str[PCF8812_STR_SIZ];
-  strcpy(str, option);
-  PCF8812_Putline(str, line);*/
   PCF8812_Putline(option, line);
 }
 
@@ -652,7 +635,8 @@ void PCF8812_Input_Time()
     PCF8812_Clear();
     PCF8812_Putline_Centre("SET DATE & TIME", 0);
     PCF8812_Button("OK", " <", "> ");
-    PCF8812_Time_String(&temp, view_all, 3);
+    Get_Time_String(&temp, str, view_all);
+    PCF8812_Putline_Centre(str, 3);
     PCF8812_Putline("dd.mm.yy HH:MM:SS", 5);//view data & time format
     //view selected digit
     PCF8812_Set_Symb(corner_up, 2, col);
