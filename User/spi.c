@@ -198,15 +198,15 @@ void SPI2_DMA_Init(void)
 	DMA1_Stream4->CR &= ~(DMA_SxCR_MSIZE|DMA_SxCR_PSIZE);//memory & peripheral data size 1 byte
 	DMA1_Stream4->CR |= DMA_SxCR_MINC;//memory increment mode
 
-	//DMA1_Stream4->M0AR = (uint32_t)tx_spi2_buff;//memory address
-	//DMA1_Stream4->NDTR = 1;//data size
-
-	//DMA1_Stream4->CR |= DMA_SxCR_CIRC;//circular mode
+#if 0
+	DMA1_Stream4->CR |= DMA_SxCR_CIRC;//circular mode
+	DMA1_Stream4->M0AR = (uint32_t)(PCF8812_buff);//memory address
+	DMA1_Stream4->NDTR = PCF8812_BUFSIZ;//data size
+#endif
 	DMA1_Stream4->CR |= DMA_SxCR_DIR_0;//memory to peripheral direction
 	DMA1_Stream4->CR |= DMA_SxCR_TCIE;//transfer complete interrupt enable
 	DMA1_Stream4->PAR = (uint32_t)&(SPI2->DR);//peripheral address
-	//DMA1_Stream4->M0AR = (uint32_t)(PCF8812_buff);//memory address
-	//DMA1_Stream4->NDTR = sizeof(PCF8812_buff);//data size
+
 	DMA1_Stream4->FCR = 0;//clear FIFO control register
 	SPI2->CR2 |= SPI_CR2_TXDMAEN;//Tx buffer DMA enable
 
@@ -224,23 +224,16 @@ void DMA1_Stream4_IRQHandler(void)
 		while(!(SPI2->SR & SPI_SR_TXE));
 		while((SPI2->SR & SPI_SR_BSY));
 		DMA1_Stream4->CR &= ~DMA_SxCR_EN;//stream disable
-		//LCD_BUFF_SET_READY();
-		LED_OFF(3);
-		//PCF8812_UNSEL();
-		//for(uint16_t i = 0; i < PCF8812_BUFSIZ; i++)
-		    //PCF8812_buff[i] = 0x00;
+		PCF8812_buff_state = PCF8812_FLUSHED;
 	}
 }
 
 
 void Send_SPI2_DMA(uint8_t* data, uint16_t length)
 {
-  //PCF8812_SEL();
-
   DMA1_Stream4->M0AR = (uint32_t)data;//memory address
   DMA1_Stream4->NDTR = length;//data size
   DMA1_Stream4->CR |= DMA_SxCR_EN;//stream enable
-  LED_ON(3);
 }
 
 void Send_SPI2_buff()
@@ -248,7 +241,6 @@ void Send_SPI2_buff()
   PCF8812_SEL();
   DMA1_Stream4->M0AR = (uint32_t)PCF8812_buff;//memory address
   DMA1_Stream4->NDTR = PCF8812_BUFSIZ;//data size
-
   DMA1_Stream4->CR |= DMA_SxCR_EN;//stream enable
 }
 

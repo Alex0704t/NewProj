@@ -4,8 +4,8 @@
 //#include "../Device/stm32f4xx.h"
 #include "main.h"
 
-#define LED_ON(led)       RESET_BLINK(led);Led_Set(led, 100);
-#define LED_OFF(led)      RESET_BLINK(led);Led_Set(led, 0);
+#define LED_ON(led)       do{RESET_BLINK(led);Led_Set(led, 100);}while(0)
+#define LED_OFF(led)      do{RESET_BLINK(led);Led_Set(led, 0);}while(0)
 #define RESET_BLINK(led)  Led_Blink(led, 0, 0);
 #define BRIGHT_STEP       10
 #define TIME_STEP         5

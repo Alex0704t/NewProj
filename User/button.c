@@ -40,6 +40,7 @@ uint8_t Get_Button(uint8_t button)
     {
       state = 1;
       PCF8812_Butt_ind(button_1);
+      PCF8812_On();
     }
     while(BUTTON_1 && state)
     {
@@ -54,13 +55,14 @@ uint8_t Get_Button(uint8_t button)
     {
       state = 1;
       PCF8812_Butt_ind(button_2);
+      PCF8812_On();
     }
     while(BUTTON_2 && state)
     {
       delay_ms(BUTT_DELAY);
     }
    Butt_2 = open;
- return state;
+   return state;
   }
   else
     {
@@ -68,6 +70,7 @@ uint8_t Get_Button(uint8_t button)
     {
       state = 1;
       PCF8812_Butt_ind(user_button);
+      PCF8812_On();
     }
     while(USER_BUTTON && state)
     {

@@ -12,8 +12,8 @@
 #include "../main.h"
 
 
-#define PCF8812_ON()                GPIOD->BSRR = GPIO_BSRR_BS_8
-#define PCF8812_OFF()               GPIOD->BSRR = GPIO_BSRR_BR_8
+#define PCF8812_POW_ON()            GPIOD->BSRR = GPIO_BSRR_BS_8
+#define PCF8812_POW_OFF()           GPIOD->BSRR = GPIO_BSRR_BR_8
 #define PCF8812_CMD()               GPIOD->BSRR = GPIO_BSRR_BR_9
 #define PCF8812_DATA()              GPIOD->BSRR = GPIO_BSRR_BS_9
 #define PCF8812_SEL()               GPIOD->BSRR = GPIO_BSRR_BR_10
@@ -22,6 +22,7 @@
 #define PCF8812_RES_OFF()           GPIOD->BSRR = GPIO_BSRR_BS_11
 #define PCF8812_LIGHT_ON()          GPIOB->BSRR = GPIO_BSRR_BS_14
 #define PCF8812_LIGHT_OFF()         GPIOB->BSRR = GPIO_BSRR_BR_14
+
 #define PCF8812_XSIZE               102//101 horizontal pixels + 1 invisible pixel
 #define PCF8812_YSIZE               8//vertical banks(each contains 8 pixels) also line in text mode
 #define PCF8812_BUFSIZ              PCF8812_XSIZE * PCF8812_YSIZE//LCD Data buffer size 816 bytes
@@ -36,7 +37,8 @@
 #define DIGITS_MAX                  5
 #define PCF8812_F_RATE              25//LCD display framerate (frame/sec)
 #define PCF8812_DELAY               delay_ms(1000/PCF8812_F_RATE)
-
+#define PCF8812_COUNT_SEC           15//idle time before display off
+#define PCF8812_COUNT_MAX           PCF8812_COUNT_SEC * 1000//counter value for systick
 
 
 /* Commands **************************/
@@ -73,20 +75,23 @@
 uint8_t PCF8812_buff[PCF8812_BUFSIZ];
 uint8_t PCF8812_buff_state;
 
+
 enum PCF8812_buff_state
 {
-  PCF8812_BUFF_READY,
-  PCF8812_BUFF_BUSY,
-  PCF8812_BUFF_CHANGED
+  PCF8812_CHANGED,
+  PCF8812_BUSY,
+  PCF8812_FLUSHED
 };
 
-#define PCF8812_BUFF_SET_READY() PCF8812_buff_state = PCF8812_BUFF_READY
+#define PCF8812_NEED_FLUSH() if(PCF8812_buff_state != PCF8812_CHANGED) \
+                                {PCF8812_buff_state = PCF8812_CHANGED;}
 
 enum fill
 {empty, filled};
 
 enum view_mode
 {view_all, view_time, view_date};
+
 
 
 struct Par {
@@ -309,6 +314,7 @@ static symb_ar line_down       = { 0x40, 0x40, 0x40, 0x40, 0x40 };
 void PCF8812_Port_Init(void);
 void PCF8812_Command(uint8_t data);
 void PCF8812_Data(uint8_t data);
+void PCF8812_Set();
 void PCF8812_Init(void);
 void PCF8812_Reset(void);
 void PCF8812_Clear(void);
@@ -324,7 +330,7 @@ void PCF8812_Set_Symb(symb_ar symb, uint8_t line, uint8_t col);
 void PCF8812_Inv_Char(uint8_t line, uint8_t col);
 void PCF8812_Error(uint8_t *s);
 void PCF8812_Message(uint8_t *s);
-void PCF8812_Menu(uint8_t *s);
+void PCF8812_Title(uint8_t *s);
 void PCF8812_Putline(uint8_t *s, uint8_t line);
 void PCF8812_Putline_Centre(uint8_t* s, uint8_t line);
 void PCF8812_Putline_Right(uint8_t* s, uint8_t line);
@@ -339,7 +345,7 @@ uint8_t PCF8812_Chk_bit(uint8_t x, uint8_t y);
 inline void PCF8812_Set_byte(uint8_t line, uint8_t x, uint8_t value);
 inline uint8_t PCF8812_Chk_byte(uint8_t line, uint8_t x);
 inline void PCF8812_Inv_byte(uint8_t line, uint8_t x);
-void PCF8812_Draw(void);
+void PCF8812_Handler(void);
 void PCF8812_Point(uint8_t x, uint8_t y);
 void PCF8812_Line(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
 void PCF8812_Rect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t fill);
@@ -353,5 +359,8 @@ uint32_t PCF8812_Input_Int(uint8_t* name, uint32_t min, uint32_t max);
 void PCF8812_Input_Time();
 uint32_t PCF8812_Set_Param(Par_list* list);
 
+void PCF8812_On();
+void PCF8812_Off();
+void PCF8812_Count(void);
 
 #endif /* PCF8812_H_ */

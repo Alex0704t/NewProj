@@ -77,7 +77,6 @@ void Set_Time(rtc_time_s* in)
 
 rtc_time_s Input_Time()
 {
-  //rtc_time_s out = {0};
   uint8_t str[PCF8812_LCD_LINE];
   uint8_t d[12] = {0};//array for 12 decimal digits
   uint8_t temp = 0;
@@ -86,7 +85,7 @@ rtc_time_s Input_Time()
   while(1)
   {
   PCF8812_Clear();
-  PCF8812_Menu("TIME SETTING");
+  PCF8812_Title("TIME SETTING");
   PCF8812_Button("OK", " <", "> ");
   if(Get_Button(button_1))//next digit
     {
@@ -122,15 +121,15 @@ rtc_time_s Input_Time()
   }
 }
 
-void Get_Time_String(void* in, uint8_t* s, uint8_t view){
+void Get_Time_String(void* in, uint8_t* s, uint8_t view_mode){
   rtc_time_s temp;
-  if(!in)
+  if(!in)//no passing time structure pointer
     temp = Get_Time();
   else
-    temp = *(rtc_time_s*)in;
-  if(view == view_time)
+    temp = *(rtc_time_s*)in;//cast to time structure
+  if(view_mode == view_time)
     snprintf(s, PCF8812_STR_SIZ, "%.2d:%.2d:%.2d", temp.hour, temp.min, temp.sec);
-  else if(view == view_date)
+  else if(view_mode == view_date)
     snprintf(s, PCF8812_STR_SIZ, "%.2d.%.2d.%.2d", temp.date, temp.month, temp.year);
   else
     snprintf(s, PCF8812_STR_SIZ, "%.2d.%.2d.%.2d %.2d:%.2d:%.2d", \

@@ -456,7 +456,7 @@ void SetVolume(void)
   while(1)
     {
     PCF8812_Clear();
-    PCF8812_Menu("VOLUME");
+    PCF8812_Title("VOLUME");
     PCF8812_Button("OK", "-10%", "+10%");
     if(Get_Button(button_1))
       DECR_ENC(VOLUME_STEP);

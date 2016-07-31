@@ -240,7 +240,7 @@ void Enter_menu(menu_s *menu)
   if(strcmp(active_menu->name, "MAIN") == 0)//if main menu
     PCF8812_Time(view_all, 0);//view time in top of display
   else
-    PCF8812_Menu(active_menu->name);//else view menu name
+    PCF8812_Title(active_menu->name);//else view menu name
   PCF8812_Button(active_menu->butt[0]->name, active_menu->butt[1]->name, \
              active_menu->butt[2]->name);
   for(uint8_t i = 0; i < active_menu->num; i++)

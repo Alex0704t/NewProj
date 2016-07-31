@@ -82,6 +82,7 @@ void TIM3_IRQHandler(void)
 	if(TIM3->SR & TIM_SR_UIF)
 	{
 	TIM3->SR &= ~TIM_SR_UIF;//clear update interrupt flag
+	PCF8812_On();
 	}
 }
 
@@ -151,6 +152,6 @@ void TIM5_IRQHandler()
   if(TIM5->SR & TIM_SR_UIF)
     {
     TIM5->SR &= ~TIM_SR_UIF;//clear update interrupt flag
-    PCF8812_Draw();
+    PCF8812_Handler();
     }
 }

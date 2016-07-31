@@ -31,25 +31,18 @@ void PCF8812_Port_Init(void)
   GPIOB->PUPDR &= ~GPIO_PUPDR_PUPDR14;//No pull-up & pull-down PB14
 }
 
-void PCF8812_Command(uint8_t data)
-{
+void PCF8812_Command(uint8_t data) {
 	PCF8812_CMD();//reset D/C for command mode
 	Send_SPI2_byte(data);//send command
-	//Send_SPI2_DMA(data);//send command via DMA
 }
 
-void PCF8812_Data(uint8_t data)
-{
+void PCF8812_Data(uint8_t data) {
 	PCF8812_DATA();//set D/C for data mode
-	//Send_SPI2(data);//send data
 	Send_SPI2_DMA(&data, 1);//send data via DMA
 }
 
-void PCF8812_Init(void)
-{
-	PCF8812_Port_Init();
-	PCF8812_Reset();
-	SPI2_DMA_Init();
+void PCF8812_Set() {
+  PCF8812_Reset();
 	PCF8812_Command(FUNC_SET|FUNC_SET_H);//extended instruction set
 	PCF8812_Command(TEMP_CONT_3);//temperature coefficient 3
 	PCF8812_Command(VOLT_MUL_4);//voltage multiplier x3
@@ -57,6 +50,13 @@ void PCF8812_Init(void)
 	PCF8812_Command(VOP_SET|0x4F);//Vlcd programming
 	PCF8812_Command(FUNC_SET);//base instruction set
 	PCF8812_Command(DISP_NORMAL);//normal mode
+}
+
+void PCF8812_Init(void) {
+	PCF8812_Port_Init();
+	SPI2_DMA_Init();
+	PCF8812_Set();
+
 	Tim5_Init(PCF8812_F_RATE);
 	PCF8812_Clear();
 	PCF8812_LIGHT_ON();
@@ -65,22 +65,18 @@ void PCF8812_Init(void)
 void PCF8812_Reset(void)
 {
   PCF8812_RES_ON();
-	PCF8812_ON();
+	PCF8812_POW_ON();
 	delay_ms(1);
 	PCF8812_RES_OFF();
 }
 
-void PCF8812_Clear(void)
-{
-  //while(PCF8812_buff_state == LCD_BUFF_BUSY);
-  //PCF8812_buff_state = LCD_BUFF_BUSY;
+void PCF8812_Clear(void) {
 	for(uint16_t i = 0; i < PCF8812_BUFSIZ; i++)
 	  PCF8812_buff[i] = 0x00;
-	PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+	PCF8812_NEED_FLUSH();
 }
 
-void PCF8812_Test(void)
-{
+void PCF8812_Test(void) {
   for(uint16_t i = 0; i < PCF8812_BUFSIZ; i += 16)
     {
     PCF8812_buff[i +  0] = 0x01;
@@ -113,8 +109,7 @@ void PCF8812_Test(void)
   PCF8812_Clear();
 }
 
-void PCF8812_Toggle(void)
-{
+void PCF8812_Toggle(void) {
 	static uint8_t mode = DISP_NORMAL;
 	if(mode == DISP_INVERSE)
 	{
@@ -128,32 +123,27 @@ void PCF8812_Toggle(void)
 	}
 }
 
-void PCF8812_Home(void)
-{
+void PCF8812_Home(void) {
 	PCF8812_Command(SET_X);//x = 0
 	PCF8812_Command(SET_Y);//y = 0
 }
 
-void PCF8812_XY(uint8_t x, uint8_t y)
-{
+void PCF8812_XY(uint8_t x, uint8_t y) {
 	PCF8812_Command(SET_X|x);
 	PCF8812_Command(SET_Y|y);
 }
 
-void PCF8812_Clr_Line(uint8_t line)
-{
+void PCF8812_Clr_Line(uint8_t line) {
   for(uint8_t i = 0; i < PCF8812_XSIZE; i++)
     PCF8812_Set_byte(line, i, 0x00);//reset all pixels
 }
 
-void PCF8812_Inv_Line(uint8_t line)
-{
+void PCF8812_Inv_Line(uint8_t line) {
   for(uint8_t i = 0; i < PCF8812_XSIZE; i++)
     PCF8812_Inv_byte(line, i);//inverse all bytes in line
 }
 
-uint8_t PCF8812_Decode(uint8_t c)
-{
+uint8_t PCF8812_Decode(uint8_t c) {
 	if(' ' <= c && c <= '~')//standard ASCII character
 	{
 		c -= 32;
@@ -173,15 +163,12 @@ uint8_t PCF8812_Decode(uint8_t c)
 	return c;
 }
 
-void PCF8812_Set_Char(uint8_t c, uint8_t line, uint8_t col)
-{
+void PCF8812_Set_Char(uint8_t c, uint8_t line, uint8_t col) {
   c = PCF8812_Decode(c);
   if(c == 255)//no recognise character
     {
      return;
     }
-  //while(PCF8812_buff_state == LCD_BUFF_BUSY);
-  //PCF8812_buff_state = LCD_BUFF_BUSY;
    //set 5x8 font character
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 0] = lcd_font[c][0];
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 1] = lcd_font[c][1];
@@ -189,13 +176,10 @@ void PCF8812_Set_Char(uint8_t c, uint8_t line, uint8_t col)
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 3] = lcd_font[c][3];
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 4] = lcd_font[c][4];
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 5] = 0x00;
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  PCF8812_NEED_FLUSH();
 }
 
-void PCF8812_Set_Symb(symb_ar symb, uint8_t line, uint8_t col)
-{
-  //while(PCF8812_buff_state == LCD_BUFF_BUSY);
-  //PCF8812_buff_state = LCD_BUFF_BUSY;
+void PCF8812_Set_Symb(symb_ar symb, uint8_t line, uint8_t col) {
   //set some graphic symbol
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 0] = symb[0];
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 1] = symb[1];
@@ -203,12 +187,10 @@ void PCF8812_Set_Symb(symb_ar symb, uint8_t line, uint8_t col)
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 3] = symb[3];
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 4] = symb[4];
   PCF8812_buff[PCF8812_DECODE_C(line, col) + 5] = 0x00;
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  PCF8812_NEED_FLUSH();
 }
 
-
-void PCF8812_Inv_Char(uint8_t line, uint8_t col)
-{
+void PCF8812_Inv_Char(uint8_t line, uint8_t col) {
   //set inverse value of 5x8 character
   PCF8812_Inv_byte(line, PCF8812_CHAR_WIDE * col + 0);
   PCF8812_Inv_byte(line, PCF8812_CHAR_WIDE * col + 1);
@@ -219,8 +201,7 @@ void PCF8812_Inv_Char(uint8_t line, uint8_t col)
 }
 
 //Error message in line 0
-void PCF8812_Error(uint8_t *s)
-{
+void PCF8812_Error(uint8_t *s) {
   uint8_t len = 0;
   uint8_t str[PCF8812_STR_SIZ] = "ERR:";
   strcat(str, s);
@@ -228,8 +209,7 @@ void PCF8812_Error(uint8_t *s)
 }
 
 //Message in line 0
-void PCF8812_Message(uint8_t *s)
-{
+void PCF8812_Message(uint8_t *s) {
   uint8_t len = 0;
   uint8_t str[PCF8812_STR_SIZ] = "MSG:";
   strcat(str, s);
@@ -237,13 +217,11 @@ void PCF8812_Message(uint8_t *s)
 }
 
 //View menu name in line 0
-void PCF8812_Menu(uint8_t *s)
-{
+void PCF8812_Title(uint8_t *s) {
   PCF8812_Putline_Centre(s, 0);
 }
 
-void PCF8812_Putline(uint8_t *s, uint8_t line)
-{
+void PCF8812_Putline(uint8_t *s, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ] = "";
   strcpy(str, s);
   strncat(str, EMPTY_STR, (PCF8812_LCD_LINE - strlen(s)));//added spaces for clear end of line
@@ -251,8 +229,7 @@ void PCF8812_Putline(uint8_t *s, uint8_t line)
     PCF8812_Set_Char(str[i], line, i);
 }
 
-void PCF8812_Putline_Centre(uint8_t* s, uint8_t line)
-{
+void PCF8812_Putline_Centre(uint8_t* s, uint8_t line) {
   uint8_t sp_num = PCF8812_LCD_LINE - strlen(s);//number of spaces
   uint8_t str[PCF8812_STR_SIZ] = "";
   //insert string in centre of line
@@ -262,8 +239,7 @@ void PCF8812_Putline_Centre(uint8_t* s, uint8_t line)
   PCF8812_Putline(str, line);
 }
 
-void PCF8812_Putline_Right(uint8_t* s, uint8_t line)
-{
+void PCF8812_Putline_Right(uint8_t* s, uint8_t line) {
   uint8_t sp_num = PCF8812_LCD_LINE - strlen(s);//number of spaces
   uint8_t str[PCF8812_STR_SIZ] = "";
   //insert string in end of line
@@ -272,8 +248,7 @@ void PCF8812_Putline_Right(uint8_t* s, uint8_t line)
   PCF8812_Putline(str, line);
 }
 
-void PCF8812_SValue(uint8_t *name, int32_t value, uint8_t *unit, uint8_t line)
-{
+void PCF8812_SValue(uint8_t *name, int32_t value, uint8_t *unit, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ];
   //call snprintf for calculate wide for name
   uint8_t name_wide = PCF8812_LCD_LINE - snprintf(str, PCF8812_STR_SIZ, "% i%.3s", value, unit);
@@ -281,8 +256,7 @@ void PCF8812_SValue(uint8_t *name, int32_t value, uint8_t *unit, uint8_t line)
   PCF8812_Putline_Centre(str, line);
 }
 
-void PCF8812_UValue(uint8_t *name, uint32_t value, uint8_t *unit, uint8_t line)
-{
+void PCF8812_UValue(uint8_t *name, uint32_t value, uint8_t *unit, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ];
   //call snprintf for calculate wide for name
   uint8_t name_wide = PCF8812_LCD_LINE - snprintf(str, PCF8812_STR_SIZ, " %u%.3s", value, unit);
@@ -290,8 +264,7 @@ void PCF8812_UValue(uint8_t *name, uint32_t value, uint8_t *unit, uint8_t line)
   PCF8812_Putline_Centre(str, line);
 }
 
-void PCF8812_Hex_Value(uint8_t *name, int32_t value, uint8_t line)
-{
+void PCF8812_Hex_Value(uint8_t *name, int32_t value, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ];
   //call snprintf for calculate wide for name
   uint8_t name_wide = PCF8812_LCD_LINE - snprintf(str, PCF8812_STR_SIZ, " %#x", value);
@@ -299,8 +272,7 @@ void PCF8812_Hex_Value(uint8_t *name, int32_t value, uint8_t line)
   PCF8812_Putline_Centre(str, line);
 }
 
-void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line)
-{
+void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ];
   uint8_t float_prec = 6;
   uint8_t name_len = strlen(name);
@@ -316,8 +288,7 @@ void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line
   PCF8812_Putline_Centre(str, line);
 }
 
-void PCF8812_Percent(uint8_t *name, int8_t value, uint8_t line)
-{
+void PCF8812_Percent(uint8_t *name, int8_t value, uint8_t line) {
   uint8_t column = 0, i = 0;
   uint8_t str[PCF8812_STR_SIZ];
   if(value < 0)
@@ -341,73 +312,49 @@ void PCF8812_Percent(uint8_t *name, int8_t value, uint8_t line)
     }
 }
 
-void PCF8812_Set_bit(uint8_t x, uint8_t y)
-{
-  //while(PCF8812_buff_state == PCF8812_BUFF_BUSY);
-  //PCF8812_buff_state = PCF8812_BUFF_BUSY;
+void PCF8812_Set_bit(uint8_t x, uint8_t y) {
   PCF8812_buff[PCF8812_DECODE_XY(x, y)] |= (1 << (y % PCF8812_YSIZE));
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  PCF8812_NEED_FLUSH();
 }
 
-void PCF8812_Clr_bit(uint8_t x, uint8_t y)
-{
-  //while(PCF8812_buff_state == PCF8812_BUFF_BUSY);
-  //PCF8812_buff_state = PCF8812_BUFF_BUSY;
+void PCF8812_Clr_bit(uint8_t x, uint8_t y) {
   PCF8812_buff[PCF8812_DECODE_XY(x, y)] &= ~(1 << (y % PCF8812_YSIZE));
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  PCF8812_NEED_FLUSH();
 }
 
-uint8_t PCF8812_Chk_bit(uint8_t x, uint8_t y)
-{
-  //while(PCF8812_buff_state == PCF8812_BUFF_BUSY);
-  //PCF8812_buff_state = PCF8812_BUFF_BUSY;
+uint8_t PCF8812_Chk_bit(uint8_t x, uint8_t y) {
   return (PCF8812_buff[PCF8812_DECODE_XY(x, y)] & (1 << (y % PCF8812_YSIZE)));
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  //PCF8812_NEED_FLUSH();
 }
 
-inline void PCF8812_Set_byte(uint8_t line, uint8_t x, uint8_t value)
-{
-  //while(PCF8812_buff_state == PCF8812_BUFF_BUSY);
-  //PCF8812_buff_state = PCF8812_BUFF_BUSY;
+inline void PCF8812_Set_byte(uint8_t line, uint8_t x, uint8_t value) {
   PCF8812_buff[PCF8812_DECODE_LINE(line) + x] = value;
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  PCF8812_NEED_FLUSH();
 }
 
-inline uint8_t PCF8812_Chk_byte(uint8_t line, uint8_t x)
-{
-  //while(PCF8812_buff_state == LCD_BUFF_BUSY);
-  //PCF8812_buff_state = LCD_BUFF_BUSY;
+inline uint8_t PCF8812_Chk_byte(uint8_t line, uint8_t x) {
   return PCF8812_buff[PCF8812_DECODE_LINE(line) + x];
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
 }
 
-inline void PCF8812_Inv_byte(uint8_t line, uint8_t x)
-{
-  //while(PCF8812_buff_state == PCF8812_BUFF_BUSY);
-  //PCF8812_buff_state = PCF8812_BUFF_BUSY;
+inline void PCF8812_Inv_byte(uint8_t line, uint8_t x) {
   PCF8812_Set_byte(line, x, ~PCF8812_Chk_byte(line, x));
-  PCF8812_buff_state = PCF8812_BUFF_CHANGED;
+  PCF8812_NEED_FLUSH();
 }
 
-void PCF8812_Draw(void)
-{
-  if(PCF8812_buff_state == PCF8812_BUFF_CHANGED)
-    {
-      //PCF8812_buff_state = PCF8812_BUFF_BUSY;
-      PCF8812_Home();//set coordinates to 0, 0
-      PCF8812_DATA();//data mode
-      Send_SPI2_DMA(PCF8812_buff, PCF8812_BUFSIZ);
-      //Send_SPI2_buff();//send LCD buffer
+void PCF8812_Handler(void) {
+  if(PCF8812_buff_state == PCF8812_CHANGED) {
+    PCF8812_Home();//set coordinates to 0, 0
+    PCF8812_DATA();//data mode
+    Send_SPI2_DMA(PCF8812_buff, PCF8812_BUFSIZ);//flush LCD buffer
+    PCF8812_buff_state = PCF8812_BUSY;
     }
 }
 
-void PCF8812_Point(uint8_t x, uint8_t y)
-{
+void PCF8812_Point(uint8_t x, uint8_t y) {
   PCF8812_Set_bit(x, y);
 }
 
-void PCF8812_Line(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
-{
+void PCF8812_Line(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
   uint8_t x = 0, y = 0;
   uint8_t temp = 0;
   uint8_t len_x = 0, len_y = 0;
@@ -446,8 +393,7 @@ void PCF8812_Line(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
   }
 }
 
-void PCF8812_Rect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t fill)
-{
+void PCF8812_Rect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t fill) {
   if(fill == empty)
   {
   PCF8812_Line(x1, y1, x2, y1);
@@ -469,27 +415,23 @@ void PCF8812_Rect(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t fill)
   }
 }
 
-void PCF8812_Triangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t x3, uint8_t y3)
-{
+void PCF8812_Triangle(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t x3, uint8_t y3) {
   PCF8812_Line(x1, y1, x2, y2);
   PCF8812_Line(x1, y1, x3, y3);
   PCF8812_Line(x3, y3, x2, y2);
 }
 
-void PCF8812_Time(uint8_t view, uint8_t line)
-{
+void PCF8812_Time(uint8_t view, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ] = "";
   Get_Time_String(NULL, str, view);
   PCF8812_Putline_Centre(str, line);
 }
 
-void PCF8812_Option(uint8_t *option, uint8_t line)
-{
+void PCF8812_Option(uint8_t *option, uint8_t line) {
   PCF8812_Putline(option, line);
 }
 
-void PCF8812_Cursor(uint8_t line)
-{
+void PCF8812_Cursor(uint8_t line) {
   if(line < 1 || line > 6)
     {
     PCF8812_Error("cursor out");
@@ -498,8 +440,7 @@ void PCF8812_Cursor(uint8_t line)
   PCF8812_Inv_Line(line);
 }
 
-void PCF8812_Button(uint8_t* butt_u, uint8_t* butt_1, uint8_t* butt_2)
-{
+void PCF8812_Button(uint8_t* butt_u, uint8_t* butt_1, uint8_t* butt_2) {
   uint8_t str[PCF8812_STR_SIZ];
   uint8_t sp_num = 0;
   uint8_t len_1 = strlen(butt_1);
@@ -517,8 +458,7 @@ void PCF8812_Button(uint8_t* butt_u, uint8_t* butt_1, uint8_t* butt_2)
   PCF8812_Putline(str, 7);
 }
 
-void PCF8812_Butt_ind(uint8_t button)
-{
+void PCF8812_Butt_ind(uint8_t button) {
   switch(button)
   {
     case button_1:
@@ -547,8 +487,7 @@ void PCF8812_Butt_ind(uint8_t button)
   }
 }
 
-uint32_t PCF8812_Input_Int(uint8_t* name, uint32_t min, uint32_t max)
-{
+uint32_t PCF8812_Input_Int(uint8_t* name, uint32_t min, uint32_t max) {
   uint8_t str[PCF8812_STR_SIZ];
   if(max < min)
     SWAP(uint32_t, min, max);
@@ -562,7 +501,7 @@ uint32_t PCF8812_Input_Int(uint8_t* name, uint32_t min, uint32_t max)
   while(1)
   {
   PCF8812_Clear();
-  PCF8812_Menu(name);
+  PCF8812_Title(name);
   PCF8812_Button("OK", " <", "> ");
   //view value
   sprintf(str, "%.*s%.*u%.*s", (PCF8812_LCD_LINE - n_dig)/2, EMPTY_STR, n_dig, result, \
@@ -599,13 +538,12 @@ uint32_t PCF8812_Input_Int(uint8_t* name, uint32_t min, uint32_t max)
   }
 }
 
-uint32_t PCF8812_Set_Param(Par_list* list)
-{
+uint32_t PCF8812_Set_Param(Par_list* list) {
   RESET_ENC;
   for(;;)
     {
       PCF8812_Clear();
-      PCF8812_Menu(list->name);
+      PCF8812_Title(list->name);
       PCF8812_Button("OK", "DOWN", "UP");
       uint8_t i = Get_Enc_Count(list->num - 1);
       if(Get_Button(button_1))
@@ -620,8 +558,7 @@ uint32_t PCF8812_Set_Param(Par_list* list)
   return 0;
 }
 
-void PCF8812_Input_Time()
-{
+void PCF8812_Input_Time() {
   //time structure set to 01.01.00 00:00:00
   rtc_time_s temp = {.date = 1, .month = 1};
   uint8_t str[PCF8812_STR_SIZ];
@@ -716,3 +653,29 @@ void PCF8812_Input_Time()
     }
 }
 
+uint32_t PCF8812_Counter = PCF8812_COUNT_MAX;
+
+void PCF8812_On() {
+  PCF8812_DELAY;
+  PCF8812_SEL();
+  PCF8812_Set();
+  PCF8812_Counter = PCF8812_COUNT_MAX;
+  RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;//DMA1 enable
+  PCF8812_NEED_FLUSH();
+  PCF8812_LIGHT_ON();
+}
+
+void PCF8812_Off() {
+  PCF8812_UNSEL();
+  PCF8812_LIGHT_OFF();
+  RCC->AHB1ENR &= ~RCC_AHB1ENR_DMA1EN;//DMA1 disable
+  PCF8812_POW_OFF();
+}
+
+void PCF8812_Count(void) {
+  if(PCF8812_Counter > 0)
+    PCF8812_Counter--;
+  else
+    if(PCF8812_buff_state != PCF8812_BUSY)
+      PCF8812_Off();
+}

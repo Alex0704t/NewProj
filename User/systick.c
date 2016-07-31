@@ -44,6 +44,7 @@ void SysTick_Handler(void)
     IncTick();
 		Enc_State();
 		Systick_Blink();
+		PCF8812_Count();
 	}
 
 void IncTick(void)
