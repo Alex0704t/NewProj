@@ -21,6 +21,7 @@
 
 # Eclipse workfiles
 *.xml
+*.prefs
 
 # CooCox workfiles
 *.cogui
