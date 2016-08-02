@@ -1,18 +1,18 @@
 #include "button.h"
 
-__IO uint8_t Butt_count = 0;
-__IO uint8_t Butt_state = 0;
-__IO uint8_t Butt_1 = open;
-__IO uint8_t Butt_2 = open;
-__IO uint8_t Butt_u = open;
+
+__IO uint8_t button_state[3] = {0};
+
+#ifdef NEED_LONG_PRESS
+__IO uint32_t button_count[3] = {0};
+#endif
 
 void Button_Init(void)
 {
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN|RCC_AHB1ENR_GPIOCEN;//GPIOA & GPIOC clock enable
 	GPIOA->MODER &= ~GPIO_MODER_MODER0;//Input PA0
-	//GPIOA->OTYPER = 0x00;//Push-pull
+	GPIOA->OTYPER = 0x00;//Push-pull
 	GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR0;//no pull-up & pull-down
-	//GPIOA->OSPEEDR = 0x00;//Low speed
 	GPIOC->MODER &= ~(GPIO_MODER_MODER8|GPIO_MODER_MODER9);//Input PC8, PC9
 	GPIOC->PUPDR &= ~(GPIO_PUPDR_PUPDR8|GPIO_PUPDR_PUPDR9);//no pull-up & pull-down PC8, PC9
 }
@@ -31,128 +31,47 @@ void ButtINT_Init(void)
 	NVIC_EnableIRQ(EXTI9_5_IRQn);//IRQ handler
 }
 
-uint8_t Get_Button(uint8_t button)
-{
-  uint8_t state = 0;
-  if(button == button_1)
-  {
-    if(Butt_1 == close)
-    {
-      state = 1;
-      PCF8812_Butt_ind(button_1);
-      PCF8812_On();
-    }
-    while(BUTTON_1 && state)
-    {
-      delay_ms(BUTT_DELAY);
-    }
-   Butt_1 = open;
-   return state;
-  }
-  else if(button == button_2)
-  {
-    if(Butt_2 == close)
-    {
-      state = 1;
-      PCF8812_Butt_ind(button_2);
-      PCF8812_On();
-    }
-    while(BUTTON_2 && state)
-    {
-      delay_ms(BUTT_DELAY);
-    }
-   Butt_2 = open;
-   return state;
-  }
-  else
-    {
-    if(Butt_u == close)
-    {
-      state = 1;
-      PCF8812_Butt_ind(user_button);
-      PCF8812_On();
-    }
-    while(USER_BUTTON && state)
-    {
-      delay_ms(BUTT_DELAY);
-    }
-   Butt_u = open;
-   return state;
-  }
 
-}
-/*
-uint8_t Get_Button(uint8_t button)
-{
-	uint8_t state = 0;
-	if(button == button_1)
-	  {
-	    if(BUTTON_1)
-	      {
-	        state = 1;
-	        A55_Butt_ind(button_1);
-	      }
-      while(BUTTON_1 && state)
-      {
-        delay_ms(5);
-      }
-      return state;
-	  }
-	else if(button == button_2)
-	    {
-	      if(BUTTON_2)
-	        {
-	          state = 1;
-	          A55_Butt_ind(button_2);
-	        }
-	      while(BUTTON_2 && state)
-	      {
-	        delay_ms(5);
-	      }
-	      return state;
-	    }
-	else
-      {
-        if(USER_BUTTON)
-          {
-            state = 1;
-            A55_Butt_ind(user_button);
-          }
-        while(USER_BUTTON && state)
-        {
-          delay_ms(5);
-        }
-        return state;
-      }
+uint8_t Get_Button(uint8_t button) {
+#ifndef NEED_LONG_PRESS
+  uint8_t ret = 0;
+  if(button_state[button]) {//if button pressed
+      ret = 1;//return value 1
+      PCF8812_Butt_ind(button);//view indicator
+      PCF8812_On();//display on
+  }
+  delay_ms(BUTT_DELAY);//delay to eliminate contact bounce
+  button_state[button] = 0;//reset button state
+  return ret;
+#else
 
+
+
+#endif
 }
-*/
-void EXTI0_IRQHandler(void)
-{
+
+void EXTI0_IRQHandler(void) {
   uint32_t temp = 0;
-	if((EXTI->PR & EXTI_PR_PR0) == EXTI_PR_PR0)
-    {
+	if((EXTI->PR & EXTI_PR_PR0) == EXTI_PR_PR0) {
       EXTI->PR |= EXTI_PR_PR0;//clear pending bit of set 1
-      Butt_u = close;
+      button_state[user_button] = 1;
     }
 }
 
-void EXTI9_5_IRQHandler(void)
-{
-
+void EXTI9_5_IRQHandler(void) {
   if((EXTI->PR & EXTI_PR_PR8) == EXTI_PR_PR8)
     {
       EXTI->PR |= EXTI_PR_PR8;//clear pending bit of set 1
       if(BUTTON_1)
-        Butt_1 = close;
+        button_state[button_1] = 1;
       if(BUTTON_2)
-        Butt_2 = close;
+        button_state[button_2] = 1;
     }
   /*
   if(((EXTI->PR & EXTI_PR_PR9) == EXTI_PR_PR9) || BUTTON)
     {
       EXTI->PR |= EXTI_PR_PR9;//clear pending bit of set 1
-      Butt_2 = close;
+      button_state[button_2] = 1;
     }
     */
 }

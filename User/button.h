@@ -10,11 +10,13 @@
 #define BUTTON_1    ((GPIOC->IDR & GPIO_IDR_IDR_8) == GPIO_IDR_IDR_8)
 #define BUTTON_2    ((GPIOC->IDR & GPIO_IDR_IDR_9) == GPIO_IDR_IDR_9)
 
+//#define USE_LONG_PRESS
+
 enum button
-{clear_ind, button_1, button_2, user_button};
+{user_button, button_1, button_2};
 
 enum curcuit
-{open, close};
+{no_press, short_press, long_press};
 
 void Button_Init(void);
 void ButtINT_Init(void);
