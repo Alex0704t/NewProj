@@ -108,9 +108,21 @@ LoopFillZerobss:
   bcc  FillZerobss
 
 /* Call the clock system intitialization function.*/
-  bl  SystemInit   
+  bl  SystemInit
+
 /* Call static constructors */
     bl __libc_init_array
+
+#ifndef __FPU_USED
+  /* Enable FPU.*/
+  LDR.W R0, =0xE000ED88
+  LDR R1, [R0]
+  ORR R1, R1, #(0xF << 20)
+  STR R1, [R0]
+  DSB
+  ISB
+#endif
+
 /* Call the application's entry point.*/
   bl  main
   bx  lr    

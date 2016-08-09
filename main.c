@@ -13,17 +13,15 @@ int main()
 
 
 
-  while(1)
-  {
-
+  while(1) {
+//float f = 0.5;
   Main_menu();
-
+      //PCF8812_Float_Value("", 0.5, "", 4);
 
   }
 }
 
-void MCU_Init()
-{
+void MCU_Init() {
   Clock_Init();
   //GPIO_Clock_En();
   Led_Init();
@@ -33,7 +31,7 @@ void MCU_Init()
   PCF8812_Init();
   RTC_Init();
   PCF8812_Test();
-  SCB->CPACR |= 0x00F00000;//enable FPU
+  //SCB->CPACR |= 0x00F00000;//enable FPU
   //Audio_Init();
   //AnalogWave_Init(1000, 30);
 }

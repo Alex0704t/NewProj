@@ -31,7 +31,7 @@ void AcceleroINT2_Init(void)
 	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PE;//EXTI1 source PE1
 	WriteRegSPI1(CTRL_REG3, CTRL_REG3_INT2_EN);//INT2 enable
 	NVIC_SetPriorityGrouping(4);//4 field for priority group
-	NVIC_SetPriority(EXTI1_IRQn, 2);
+	NVIC_SetPriority(EXTI1_IRQn, 4);
 	NVIC_EnableIRQ(EXTI1_IRQn);//IRQ handler
 }
 

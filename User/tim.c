@@ -17,7 +17,7 @@ void Tim4_Init(void)
 	TIM4->CR1 |= TIM_CR1_ARPE;//ARR preload enable
 	TIM4->CR1 |= TIM_CR1_CEN;//TIM4 enabled
 
-	NVIC_SetPriority(TIM4_IRQn, 6);
+	NVIC_SetPriority(TIM4_IRQn, 4);
 	NVIC_EnableIRQ(TIM4_IRQn);
 }
 
@@ -46,12 +46,9 @@ void Tim4_DeInit(void)
   RCC->APB1ENR &= ~RCC_APB1ENR_TIM4EN;//Tim4 clock disabled
 }
 
-void TIM4_IRQHandler(void)
-{
-	if(TIM4->SR & TIM_SR_UIF)
-	{
+void TIM4_IRQHandler(void) {
+	if(TIM4->SR & TIM_SR_UIF)	{
 	TIM4->SR &= ~TIM_SR_UIF;//clear update interrupt flag
-	//LED_2_OFF();
 	}
 }
 
@@ -77,12 +74,9 @@ void Tim3_Enc_Init(void)
 	TIM3->CCER &= ~(TIM_CCER_CC1P|TIM_CCER_CC2P);//active high level TI1, TI2
 }
 
-void TIM3_IRQHandler(void)
-{
-	if(TIM3->SR & TIM_SR_UIF)
-	{
+void TIM3_IRQHandler(void) {
+	if(TIM3->SR & TIM_SR_UIF)	{
 	TIM3->SR &= ~TIM_SR_UIF;//clear update interrupt flag
-	PCF8812_On();
 	}
 }
 
@@ -94,7 +88,7 @@ void Tim6_Init(uint16_t frequency)
   TIM6->DIER |= TIM_DIER_UIE;//update interrupt enable
   TIM6->CR2 |= TIM_CR2_MMS_1;//update event is trigger output
 
-  NVIC_SetPriority(TIM6_DAC_IRQn, 6);
+  NVIC_SetPriority(TIM6_DAC_IRQn, 4);
   //NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
   //TIM6->CR1 |= TIM_CR1_CEN;//TIM6 enabled
@@ -141,17 +135,16 @@ void Tim5_Init(uint8_t frequency)
   TIM5->CR1 &= ~TIM_CR1_DIR;//count direction up
   TIM5->CR1 |= TIM_CR1_ARPE;//ARR preload enable
 
-  NVIC_SetPriority(TIM5_IRQn, 1);
+  NVIC_SetPriority(TIM5_IRQn, 4);
   NVIC_EnableIRQ(TIM5_IRQn);
 
   TIM5->CR1 |= TIM_CR1_CEN;//TIM5 enabled
 }
 
-void TIM5_IRQHandler()
-{
-  if(TIM5->SR & TIM_SR_UIF)
-    {
+void TIM5_IRQHandler() {
+  if(TIM5->SR & TIM_SR_UIF) {
     TIM5->SR &= ~TIM_SR_UIF;//clear update interrupt flag
     PCF8812_Handler();
+    PCF8812_Count();
     }
 }

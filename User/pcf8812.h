@@ -38,7 +38,7 @@
 #define PCF8812_F_RATE              25//LCD display framerate (frame/sec)
 #define PCF8812_DELAY               delay_ms(1000/PCF8812_F_RATE)
 #define PCF8812_COUNT_SEC           15//idle time before display off
-#define PCF8812_COUNT_MAX           PCF8812_COUNT_SEC * 1000//counter value for systick
+#define PCF8812_COUNT_MAX           PCF8812_COUNT_SEC * PCF8812_F_RATE//convert to TIM5 tick
 
 
 /* Commands **************************/
@@ -72,8 +72,8 @@
                                 snprintf(s, PCF8812_STR_SIZ, #var ":%d", var);\
                                 LCD_Putline(s, line);}
 
-uint8_t PCF8812_buff[PCF8812_BUFSIZ];
-uint8_t PCF8812_buff_state;
+uint8_t __IO PCF8812_buff[PCF8812_BUFSIZ];
+uint8_t __IO PCF8812_buff_state;
 
 
 enum PCF8812_buff_state
@@ -361,6 +361,6 @@ uint32_t PCF8812_Set_Param(Par_list* list);
 
 void PCF8812_On();
 void PCF8812_Off();
-void PCF8812_Count(void);
+void PCF8812_Count();
 
 #endif /* PCF8812_H_ */

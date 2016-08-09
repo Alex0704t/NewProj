@@ -77,40 +77,32 @@ uint16_t Read_ADC1(void)
 	return ADC1->DR;
 }
 
-void ADC_IRQHandler(void)
-{
-	if(ADC1->SR & ADC_SR_AWD)
-	{
+void ADC_IRQHandler(void) {
+	if(ADC1->SR & ADC_SR_AWD)	{
 	ADC1->SR &= ~ADC_SR_AWD;//clear AWD flag
-	//LED_2_ON();
-	//LED_0_ON();
 	}
 }
 
-void Read_Temp(void)
-{
+void Read_Temp(void) {
   uint16_t value;
   ADC1_Temp_Init();
-  while(1)
-    {
+  while(1) {
       PCF8812_Clear();
-      PCF8812_Putline("TEMP SENSOR", 0);
+      PCF8812_Title("TEMP SENSOR");
       PCF8812_Button("OK", "", "");
       value = Read_ADC1();
       //USB_Send_Int(value);
       PCF8812_SValue("temp", value, "C", 2);
       if(Get_Button(user_button))
           break;
-      PCF8812_DELAY;
+      delay_ms(500);
     }
 }
 
-void Read_Voltage(void)
-{
+void Read_Voltage(void) {
   uint16_t value;
   ADC1_Init();
-  while(1)
-    {
+  while(1) {
       PCF8812_Clear();
       PCF8812_Putline("VOLTAGE  (PA1-IN)", 0);
       PCF8812_Button("OK", "", "");
@@ -122,6 +114,6 @@ void Read_Voltage(void)
       PCF8812_Float_Value("Vdc ", value/1000.0, "V", 2);
       if(Get_Button(user_button))
           break;
-      PCF8812_DELAY;
+      delay_ms(500);
     }
 }

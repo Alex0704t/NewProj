@@ -7,7 +7,6 @@
 
 #include "pcf8812.h"
 
-
 void PCF8812_Port_Init(void)
 {
 	/*
@@ -56,7 +55,7 @@ void PCF8812_Init(void) {
 	PCF8812_Port_Init();
 	SPI2_DMA_Init();
 	PCF8812_Set();
-
+	//PCF8812_ON_flag = SET;
 	Tim5_Init(PCF8812_F_RATE);
 	PCF8812_Clear();
 	PCF8812_LIGHT_ON();
@@ -279,8 +278,7 @@ void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line
   //call snprintf for calculate wide for name
   uint8_t name_wide = PCF8812_LCD_LINE - snprintf(str, PCF8812_STR_SIZ, "% .*g%.3s", float_prec, value, unit);
   //name wide less than name len and less than 5
-  if((name_wide < name_len) && (name_wide < 5))
-    {
+  if((name_wide < name_len) && (name_wide < 5)) {
       name_wide = (name_len > 5) ? 5 : name_len;
       float_prec = 8 - name_wide;//correct float precision
     }
@@ -342,7 +340,7 @@ inline void PCF8812_Inv_byte(uint8_t line, uint8_t x) {
 }
 
 void PCF8812_Handler(void) {
-  if(PCF8812_buff_state == PCF8812_CHANGED) {
+  if(PCF8812_buff_state == PCF8812_CHANGED/* && PCF8812_ON_flag == SET*/) {
     PCF8812_Home();//set coordinates to 0, 0
     PCF8812_DATA();//data mode
     Send_SPI2_DMA(PCF8812_buff, PCF8812_BUFSIZ);//flush LCD buffer
@@ -653,29 +651,21 @@ void PCF8812_Input_Time() {
     }
 }
 
-uint32_t PCF8812_Counter = PCF8812_COUNT_MAX;
+uint32_t __IO PCF8812_Counter = PCF8812_COUNT_MAX;
 
 void PCF8812_On() {
-  PCF8812_DELAY;
-  PCF8812_SEL();
-  PCF8812_Set();
   PCF8812_Counter = PCF8812_COUNT_MAX;
-  RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;//DMA1 enable
   PCF8812_NEED_FLUSH();
   PCF8812_LIGHT_ON();
 }
 
 void PCF8812_Off() {
-  PCF8812_UNSEL();
   PCF8812_LIGHT_OFF();
-  RCC->AHB1ENR &= ~RCC_AHB1ENR_DMA1EN;//DMA1 disable
-  PCF8812_POW_OFF();
 }
 
-void PCF8812_Count(void) {
-  if(PCF8812_Counter > 0)
-    PCF8812_Counter--;
+void PCF8812_Count() {
+  if(PCF8812_Counter)
+      PCF8812_Counter--;
   else
-    if(PCF8812_buff_state != PCF8812_BUSY)
       PCF8812_Off();
 }

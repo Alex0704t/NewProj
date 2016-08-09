@@ -79,7 +79,7 @@ void SPI1_DMA_Init(void)
 
 	NVIC_SetPriority(DMA2_Stream3_IRQn, 4);
 	NVIC_EnableIRQ(DMA2_Stream3_IRQn);//IRQ handler
-	NVIC_SetPriority(DMA2_Stream0_IRQn, 2);
+	NVIC_SetPriority(DMA2_Stream0_IRQn, 4);
 	NVIC_EnableIRQ(DMA2_Stream0_IRQn);//IRQ handler
 }
 
@@ -123,7 +123,7 @@ void GetAxData(void)
 	DMA2_Stream3->CR |= DMA_SxCR_EN;//stream enable
 }
 
-extern uint8_t PCF8812_buff[PCF8812_BUFSIZ];
+extern __IO uint8_t PCF8812_buff[PCF8812_BUFSIZ];
 
 void SPI2_Init(void)
 {
@@ -233,6 +233,7 @@ void Send_SPI2_DMA(uint8_t* data, uint16_t length)
 {
   DMA1_Stream4->M0AR = (uint32_t)data;//memory address
   DMA1_Stream4->NDTR = length;//data size
+  PCF8812_buff_state = PCF8812_BUSY;
   DMA1_Stream4->CR |= DMA_SxCR_EN;//stream enable
 }
 
@@ -241,6 +242,7 @@ void Send_SPI2_buff()
   PCF8812_SEL();
   DMA1_Stream4->M0AR = (uint32_t)PCF8812_buff;//memory address
   DMA1_Stream4->NDTR = PCF8812_BUFSIZ;//data size
+  PCF8812_buff_state = PCF8812_BUSY;
   DMA1_Stream4->CR |= DMA_SxCR_EN;//stream enable
 }
 

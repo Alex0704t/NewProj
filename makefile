@@ -18,8 +18,8 @@ SRC_DIRS=$(STM_DIR) $(DIRS)
 #INC_DIRS+=$(MP3_DIRS)
 #SRC_DIRS+=$(MP3_DIRS)
 #Startup
-#STARTUP=./Device/startup/startup_stm32f4xx.c
-STARTUP=./Device/startup/startup_stm32f407xx.s
+STARTUP=./Device/startup/startup_stm32f4xx.c
+#STARTUP=./Device/startup/startup_stm32f407xx.s
 #Define commands
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
@@ -30,8 +30,8 @@ REMOVE=rm -f
 LINKER_FLAGS=-nostartfiles -Xlinker -o$(TARGET).elf -Xlinker -M -Xlinker \
 -Map=$(TARGET).map --specs=nano.specs -lgcc -lm -u _printf_float 
 DEBUG=-g2
-#OPTIM=-O2
-OPTIM=-O3
+OPTIM=-O2
+#OPTIM=-O3
 STANDART=-std=gnu11
 M_CPU=cortex-m4
 M_FPU=fpv4-sp-d16
@@ -42,6 +42,7 @@ $(foreach dir, $(INC_DIRS), -I$(dir)) \
 -D STM32F407xx \
 -D inline= -mthumb -mcpu=$(M_CPU) -mfpu=$(M_FPU) -mfloat-abi=$(M_FLOAT) \
 $(OPTIM) -T $(LDSCRIPT) -ggdb 
+CFLAGS += -D __FPU_USED
 #Source & object files
 SOURCE=$(wildcard $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c)))
 OBJS=$(SOURCE:.c=.o)
