@@ -1,8 +1,10 @@
 #include "button.h"
 
 
+
 __IO uint8_t button_state[3] = {RESET};
 __IO uint32_t button_count[3] = {0};
+button_s butt[3] = {0};
 
 void Button_Init(void)
 {
@@ -34,65 +36,49 @@ void ButtINT_Init(void)
 
 uint8_t Get_Button(uint8_t button) {
   uint8_t ret = no_press;
-  #ifndef USE_LONG_PRESS
-
-  if(button_state[button]) {//if button pressed
-      ret = SET;//return value 1
-      PCF8812_Butt_ind(button);//view indicator
-      PCF8812_On();//display on
-      BUTT_DELAY();//delay to eliminate contact bounce
-      button_state[button] = RESET;//reset button state
-  }
-  return ret;
-#else
-  if(button_count[button])
-    PCF8812_On();//display on
-  if(button_count[button] >= CONT_BOUNCE_TIME_MS) {
+  if(button_count[button] >= CONT_BOUNCE) {
       ret = short_press;
   }
-  else if(button_count[button] >= SHORT_PRESS_TIME_MS) {
+  else if(button_count[button] >= SHORT_PRESS) {
       ret = long_press;
   }
   if(ret) {
+      PCF8812_On();//display on
       button_state[button] = RESET;//reset button state
       PCF8812_Butt_ind(button);//view indicator
       button_count[button] = 0;
   }
   return ret;
-
-#endif
 }
 
 void EXTI0_IRQHandler(void) {
 	if((EXTI->PR & EXTI_PR_PR0) == EXTI_PR_PR0) {
       EXTI->PR |= EXTI_PR_PR0;//clear pending bit of set 1
-      button_state[user_button] = SET;
+
     }
 }
 
 void EXTI9_5_IRQHandler(void) {
   if((EXTI->PR & EXTI_PR_PR8) == EXTI_PR_PR8) {
       EXTI->PR |= EXTI_PR_PR8;//clear pending bit of set 1
-      if(PRESS_BUTTON_1)
-        button_state[button_1] = SET;
-      if(PRESS_BUTTON_2)
-        button_state[button_2] = SET;
+
     }
   }
 
 
-__IO uint8_t butt_count_flag[3] = {0};
-
 void Butt_Count() {
-  if(button_state[user_button] && PRESS_USER_BUTTON)
+  if(PRESS_USER_BUTTON)
       button_count[user_button]++;
-  if(button_state[button_1] && PRESS_BUTTON_1)
+  if(PRESS_BUTTON_1)
       button_count[button_1]++;
-  if(button_state[button_2] && PRESS_BUTTON_2)
+  if(PRESS_BUTTON_2)
       button_count[button_2]++;
 }
 
-
+void Set_Button(uint8_t button, button_s* in) {
+  butt[button] = (button_s){0};
+  butt[button] = *in;
+}
 
 
 

@@ -30,8 +30,8 @@ REMOVE=rm -f
 LINKER_FLAGS=-nostartfiles -Xlinker -o$(TARGET).elf -Xlinker -M -Xlinker \
 -Map=$(TARGET).map --specs=nano.specs -lgcc -lm -u _printf_float 
 DEBUG=-g2
-OPTIM=-O2
-#OPTIM=-O3
+#OPTIM=-O2
+OPTIM=-O3
 STANDART=-std=gnu11
 M_CPU=cortex-m4
 M_FPU=fpv4-sp-d16

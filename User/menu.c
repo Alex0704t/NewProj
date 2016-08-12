@@ -23,7 +23,7 @@ menu_s *active_menu;
 butt_s no_button =
       {No_op, ""};
 butt_s sel_item =
-      {(act_fp)0, "OK"};
+      {(p_func)0, "OK"};
 butt_s back =
       {Back_menu, "BACK"};
 butt_s next =
@@ -225,7 +225,7 @@ void Prev_item(void)
   DECR_ENC(1);
 }
 
-
+extern uint32_t PCF8812_Counter;
 void Enter_menu(menu_s *menu)
 {
   RESET_ENC;//reset encoder counter
@@ -250,7 +250,7 @@ void Enter_menu(menu_s *menu)
 /** handle button 1 pressing ******************************************/
   if(Get_Button(button_1))//
   {
-  if(active_menu->butt[1]->action == (act_fp)0)//no set button action
+  if(active_menu->butt[1]->action == (p_func)0)//no set button action
     if(active_menu->next_menu[cur_pos] == NULL)//no set next menu
       active_menu->action[cur_pos]();//run menu item function
     else
@@ -261,7 +261,7 @@ void Enter_menu(menu_s *menu)
 /** handle button 2 pressing ******************************************/
   if(Get_Button(button_2))
   {
-  if(active_menu->butt[2]->action == (act_fp)0)
+  if(active_menu->butt[2]->action == (p_func)0)
     if(active_menu->next_menu[cur_pos] == NULL)
       active_menu->action[cur_pos]();
     else
@@ -272,7 +272,7 @@ void Enter_menu(menu_s *menu)
 /** handle user button pressing ***************************************/
   if(Get_Button(user_button))
   {
-  if(active_menu->butt[0]->action == (act_fp)0)
+  if(active_menu->butt[0]->action == (p_func)0)
     if(active_menu->next_menu[cur_pos] == NULL)
       active_menu->action[cur_pos]();
     else

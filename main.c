@@ -5,6 +5,7 @@
 #include "main.h"
 
 
+
 int main()
 {
   MCU_Init();
@@ -16,7 +17,6 @@ int main()
   while(1) {
 //float f = 0.5;
   Main_menu();
-      //PCF8812_Float_Value("", 0.5, "", 4);
 
   }
 }
@@ -25,7 +25,7 @@ void MCU_Init() {
   Clock_Init();
   //GPIO_Clock_En();
   Led_Init();
-  ButtINT_Init();
+  Button_Init();
   Enc_Tim3_Init();
   Tim4_OC_Init();
   PCF8812_Init();

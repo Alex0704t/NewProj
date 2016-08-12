@@ -53,6 +53,8 @@ __IO int32_t ITM_RxBuffer;
 #define SWAP(type, a, b) {type temp; temp = a; a = b; b = temp;}
 
 
+//typedef void (*p_func)(void);
+
 void MCU_Init();
 
 /*

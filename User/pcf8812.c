@@ -651,7 +651,7 @@ void PCF8812_Input_Time() {
     }
 }
 
-uint32_t __IO PCF8812_Counter = PCF8812_COUNT_MAX;
+uint32_t PCF8812_Counter = PCF8812_COUNT_MAX;
 
 void PCF8812_On() {
   PCF8812_Counter = PCF8812_COUNT_MAX;
@@ -669,3 +669,4 @@ void PCF8812_Count() {
   else
       PCF8812_Off();
 }
+
