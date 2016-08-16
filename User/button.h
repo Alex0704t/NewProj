@@ -10,8 +10,9 @@
 #define PRESS_BUTTON_2      ((GPIOC->IDR & GPIO_IDR_IDR_9) == GPIO_IDR_IDR_9)
 
 
-#define CONT_BOUNCE 3
-#define SHORT_PRESS 25
+#define CONTACT_BOUNCE_LIMIT  2
+#define SHORT_PRESS_LIMIT     25
+#define PAST_L_PRESS_DELAY    5
 
 enum button
 {user_button, button_1, button_2};
@@ -32,12 +33,13 @@ typedef struct {
   p_func long_act;
   uint8_t repeat;
   uint8_t state;
-  uint32_t count;
+  uint8_t count;
 }button_s;
 
 
 
 uint8_t Get_Button(uint8_t button);
+uint8_t Check_Button(uint8_t button);
 void Butt_Count();
 
 void Set_Button(uint8_t button, button_s* in);

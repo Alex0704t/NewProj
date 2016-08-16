@@ -4,8 +4,7 @@ uint16_t led_time[4][2] = {0};
 uint16_t led_count[4] = {0};
 uint8_t led_flag[4] = {0};
 
-void Led_Init(void)
-{
+void Led_Init(void) {
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;//GPIOD clock enable
 	GPIOD->MODER &= ~0xFF000000;//Clear Pin 12,13,14,15 mode
 	GPIOD->MODER |= 0x55000000;//PD12,13,14,15 output

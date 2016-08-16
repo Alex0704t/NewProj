@@ -225,7 +225,6 @@ void Prev_item(void)
   DECR_ENC(1);
 }
 
-extern uint32_t PCF8812_Counter;
 void Enter_menu(menu_s *menu)
 {
   RESET_ENC;//reset encoder counter

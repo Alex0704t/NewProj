@@ -15,8 +15,18 @@ int main()
 
 
   while(1) {
-//float f = 0.5;
-  Main_menu();
+
+  //Main_menu();
+
+      uint8_t press = Get_Button(user_button);
+      if(press == short_press)
+        LED_TOGGLE(orange);
+      else if(press == long_press)
+        LED_TOGGLE(blue);
+      PCF8812_DELAY;
+      delay_ms(300);
+      PCF8812_Clear();
+
 
   }
 }
