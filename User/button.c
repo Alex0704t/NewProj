@@ -1,11 +1,9 @@
 #include "button.h"
+#include "pcf8812.h"
 
 
-
-__IO uint8_t button_state[3] = {0};
-__IO uint8_t button_count[3] = {0};
-__IO uint8_t button_rev_count[3] = {0};
 button_s butt[3] = {0};
+
 
 void Button_Init(void)
 {
@@ -36,34 +34,36 @@ void ButtINT_Init(void)
 
 
 uint8_t Get_Button(uint8_t button) {
-  uint8_t ret = no_press;
-  //wait until button is pressed or count exceed short press threshold
-  while(Check_Button(button)\
-      && button_count[button] <= SHORT_PRESS_LIMIT);
-  //detect short press
-  if(button_count[button] >=  CONTACT_BOUNCE_LIMIT\
-      && button_count[button] <= SHORT_PRESS_LIMIT) {
-      //if delay past long press elapsed
-      if(button_rev_count[button] == 0)
-        ret = short_press;
+  butt[button].state = button_released;
+  //wait until button is pressed or count exceed short button_press threshold
+  while(Check_Button(button) \
+      && butt[button].count <= SHORT_PRESS_LIMIT);
+  //detect short button_press
+  if(butt[button].count >=  CONTACT_BOUNCE_LIMIT \
+      && butt[button].count <= SHORT_PRESS_LIMIT) {
+      //if delay past long button_press elapsed
+      if(butt[button].rev_count == 0)
+        butt[button].state = button_pressed;
       else {
-        ret = no_press;
-        button_count[button] = 0;//reset button counter
+        butt[button].state = button_released;
+        butt[button].count = 0;//reset button counter
       }
-
   }
-  //detect long press
-  else if(button_count[button] > SHORT_PRESS_LIMIT) {
-      ret = long_press;
-      button_rev_count[button] = PAST_L_PRESS_DELAY;//start delay past long press
+  //detect long button_press
+  else if(butt[button].count > SHORT_PRESS_LIMIT) {
+      butt[button].state = button_hold;
+      butt[button].rev_count = PAST_HOLD_DELAY;//start delay past long button_press
   }
-  if(ret) {
+  if(butt[button].state) {
       PCF8812_On();//display on
       PCF8812_Butt_ind(button);//view indicator
       if(!Check_Button(button))
-        button_count[button] = 0;//reset button counter
+        butt[button].count = 0;//reset button counter
   }
-  return ret;
+  return butt[button].state;
+
+
+
 }
 
 void EXTI0_IRQHandler(void) {
@@ -82,19 +82,26 @@ void EXTI9_5_IRQHandler(void) {
 
 
 void Butt_Count() {
-  if(PRESS_USER_BUTTON)
-      button_count[user_button]++;
-  if(PRESS_BUTTON_1)
-      button_count[button_1]++;
-  if(PRESS_BUTTON_2)
-      button_count[button_2]++;
-  if(button_rev_count[user_button] && PRESS_USER_BUTTON == 0)
-      button_rev_count[user_button]--;
-  if(button_rev_count[button_1] && PRESS_BUTTON_1 == 0)
-      button_rev_count[button_1]--;
-  if(button_rev_count[button_2] && PRESS_BUTTON_2 == 0)
-      button_rev_count[button_2]--;
+  if(PRESS_USER_BUTTON) {
+      if(butt[user_button].rev_count)
+        butt[user_button].rev_count--;
+      else
+        butt[user_button].count++;
+  }
+  if(PRESS_BUTTON_1) {
+      if(butt[button_1].rev_count)
+        butt[button_1].rev_count--;
+      else
+        butt[button_1].count++;
+  }
+  if(PRESS_BUTTON_2) {
+      if(butt[button_2].rev_count)
+        butt[button_2].rev_count--;
+      else
+        butt[button_2].count++;
+  }
 }
+
 
 void Set_Button(uint8_t button, button_s* in) {
   butt[button] = (button_s){0};

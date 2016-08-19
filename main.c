@@ -19,10 +19,14 @@ int main()
   //Main_menu();
 
       uint8_t press = Get_Button(user_button);
-      if(press == short_press)
+      if(press == button_pressed)
         LED_TOGGLE(orange);
-      else if(press == long_press)
+      else if(press == button_hold)
         LED_TOGGLE(blue);
+
+
+
+
       PCF8812_DELAY;
       delay_ms(300);
       PCF8812_Clear();

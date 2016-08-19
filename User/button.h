@@ -12,13 +12,15 @@
 
 #define CONTACT_BOUNCE_LIMIT  2
 #define SHORT_PRESS_LIMIT     25
-#define PAST_L_PRESS_DELAY    5
+#define PAST_HOLD_DELAY       5
+
+
 
 enum button
 {user_button, button_1, button_2};
 
 enum pressing
-{no_press, short_press, long_press};
+{button_released, button_pressed, button_hold};
 
 
 
@@ -27,13 +29,14 @@ void ButtINT_Init(void);
 
 typedef void (*p_func)(void);
 
-typedef struct {
+typedef struct button_s{
   uint8_t* name;
-  p_func short_act;
-  p_func long_act;
-  uint8_t repeat;
-  uint8_t state;
-  uint8_t count;
+  p_func press_act;
+  p_func hold_act;
+  //uint8_t repeat;
+  __IO uint8_t state;
+  __IO uint8_t count;
+  __IO uint8_t rev_count;
 }button_s;
 
 
