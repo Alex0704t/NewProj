@@ -30,30 +30,7 @@ void ButtINT_Init(void) {
 
 
 uint8_t Get_Button(uint8_t button) {
-  butt[button].state = button_released;
-  //wait until button is pressed or count exceed short button_press threshold
-  while(Check_Button(button) \
-      && butt[button].count <= SHORT_PRESS_LIMIT);
-  //detect short button_press
-  if(butt[button].count >=  CONTACT_BOUNCE_LIMIT \
-      && butt[button].count <= SHORT_PRESS_LIMIT) {
-        butt[button].state = button_pressed;
-        butt[button].count = 0;//reset button counter
-        }
-      //else
-       // butt[button].count = 0;//reset button counter
- // }
-  //detect long button_press
-  else if(butt[button].count > SHORT_PRESS_LIMIT) {
-      butt[button].state = button_hold;
-      butt[button].count = PAST_HOLD_DELAY;//start delay past long button_press
-  }
-  if(butt[button].state) {
-      PCF8812_On();//display on
-      PCF8812_Butt_ind(button);//view indicator
-      //if(!Check_Button(button))
-        //butt[button].count = 0;//reset button counter
-  }
+  PCF8812_UValue("state", butt[button].state, "", 3);
   return butt[button].state;
 }
 
@@ -73,81 +50,74 @@ void EXTI9_5_IRQHandler(void) {
 
 
 void Button_Handler() {
-//if button enabled
-  if(butt[user_button].enable) {
-//if button pressing
-    if(PRESS_USER_BUTTON) {
-//increment counter
-        butt[user_button].count++;
-//button hold
-        if(butt[user_button].state != button_hold \
-        && butt[user_button].count >= SHORT_PRESS_LIMIT) {
-            butt[user_button].state = button_hold;
-//no repeat mode
-            if(!butt[user_button].repeat_ms) {
-                butt[user_button].hold_act();
-                return;
-            }
-        }
-//repeat mode
-        else if(butt[user_button].repeat_ms \
-            && butt[user_button].state == button_hold) {
-            if(butt[user_button].count >= 0) {
-                butt[user_button].hold_act();
-//set negative value to counter according to repeat period
-                butt[user_button].count = \
-                    butt[user_button].repeat_ms * PCF8812_F_RATE / -1000.0;
-                return;
-            }
-        }
-    }
-//button released
-    else {
-//if set past hold delay increment counter
-        if(butt[user_button].count < 0)
-            butt[user_button].count++;
-//reset button state & set delay past holding button
-        if(butt[user_button].state == button_hold) {
-            butt[user_button].state = button_released;
-            butt[user_button].count = PAST_HOLD_DELAY;
-        }
-//filter contact bounce
-        else if(butt[user_button].state != button_hold){
-            if(butt[user_button].count <= CONTACT_BOUNCE_LIMIT)
-                butt[user_button].count = 0;
-//button pressed
-            else if(butt[user_button].count > CONTACT_BOUNCE_LIMIT \
-            && butt[user_button].count < SHORT_PRESS_LIMIT) {
-                butt[user_button].state = button_pressed;
-                butt[user_button].press_act();
-                butt[user_button].count = 0;
-                return;
-            }
-        }
-    }
-  }
+  if(butt[user_button].enable)
+      Button_Handle(user_button);
+  if(butt[button_1].enable)
+        Button_Handle(button_1);
+  if(butt[button_2].enable)
+        Button_Handle(button_2);
 }
 
-void Butt_Count() {
-  if(PRESS_USER_BUTTON) {/*
-      if(butt[user_button].rev_count)
-        butt[user_button].rev_count--;
-      else*/
-        butt[user_button].count++;
-  }
-  if(PRESS_BUTTON_1) {/*
-      if(butt[button_1].rev_count)
-        butt[button_1].rev_count--;
-      else*/
-        butt[button_1].count++;
-  }
-  if(PRESS_BUTTON_2) {/*
-      if(butt[button_2].rev_count)
-        butt[button_2].rev_count--;
-      else*/
-        butt[button_2].count++;
-  }
+void Button_Handle(uint8_t button) {
+  //if button pressing
+      if(Check_Button(button)) {
+          PCF8812_On();
+  //increment counter
+          butt[button].count++;
+  //button hold
+          if(butt[button].state != button_hold \
+          && butt[button].count >= SHORT_PRESS_LIMIT) {
+              butt[button].state = button_hold;
+  //no repeat mode
+              if(!butt[button].repeat_ms) {
+                  butt[button].hold_act();
+                  //PCF8812_On();
+                  return;
+              }
+          }
+  //repeat mode
+          else if(butt[button].repeat_ms \
+              && butt[button].state == button_hold) {
+              if(butt[button].count >= 0) {
+                  butt[button].hold_act();
+                  //PCF8812_On();
+  //set negative value to counter according to repeat period
+                  butt[button].count = \
+                      butt[button].repeat_ms * PCF8812_F_RATE / -1000.0;
+                  return;
+              }
+          }
+      }
+  //button released
+      else {
+  //if set past hold delay increment counter
+          if(butt[button].count < 0)
+              butt[button].count++;
+  //reset button state & set delay past holding button
+          if(butt[button].state == button_hold) {
+              butt[button].state = button_released;
+              butt[button].count = PAST_HOLD_DELAY;
+          }
+  //filter contact bounce
+          else if(butt[button].state != button_hold){
+              if(butt[button].count <= CONTACT_BOUNCE_LIMIT) {
+                  butt[button].count = 0;
+                  butt[button].state = button_released;
+              }
+
+  //button pressed
+              else if(butt[button].count > CONTACT_BOUNCE_LIMIT \
+              && butt[button].count < SHORT_PRESS_LIMIT) {
+                  butt[button].state = button_pressed;
+                  butt[button].press_act();
+                  //PCF8812_On();
+                  butt[button].count = 0;
+                  return;
+              }
+          }
+      }
 }
+
 
 
 void Set_Button(uint8_t button, button_s* in) {

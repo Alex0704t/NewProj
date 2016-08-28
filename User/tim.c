@@ -146,7 +146,6 @@ void TIM5_IRQHandler() {
     TIM5->SR &= ~TIM_SR_UIF;//clear update interrupt flag
     PCF8812_Handler();
     PCF8812_Count();
-    //Butt_Count();
     Button_Handler();
     }
 }
