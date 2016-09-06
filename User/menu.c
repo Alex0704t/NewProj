@@ -14,22 +14,18 @@
  */
 static int8_t cur_pos = 0;
 uint8_t brk_flag = 0;
+uint8_t nxt_flag = 0;
 menu_s *active_menu;
 /*
  * *********************************************************************
  * Button variables
  * *********************************************************************
  */
-butt_s no_button =
-      {No_op, ""};
-butt_s sel_item =
-      {(p_func)0, "OK"};
-butt_s back =
-      {Back_menu, "BACK"};
-butt_s next =
-      {Next_item, "NEXT"};
-butt_s prev =
-      {Prev_item, "PREV"};
+button_s no_button  = {};
+button_s sel_item   = {.enable = SET, .name = "OK",   .press_act = Sel_item};
+button_s back       = {.enable = SET, .name = "BACK", .press_act = Back_menu};
+button_s next       = {.enable = SET, .name = "NEXT", .press_act = Next_item};
+button_s prev       = {.enable = SET, .name = "PREV", .press_act = Prev_item};
 
 
 /*********************************************************************/
@@ -99,7 +95,7 @@ menu_s led_menu = {
     6,
     {"GREEN  (0)", "ORANGE (1)", "RED    (2)", "BLUE   (3)", "ALL",         "BACK"},
     {&led0_menu,   &led1_menu,   &led2_menu,   &led3_menu,   &led_all_menu, NULL},
-    {No_op,        No_op,        No_op,        No_op,        No_op,         Back_menu},
+    {Go_menu,      Go_menu,      Go_menu,      Go_menu,      Go_menu,       Back_menu},
     Tim4_OC_Init,
     No_op,
     DISABLE,
@@ -161,7 +157,7 @@ menu_s audio_menu = {
     5,
     {"BEEP",     "SINE",     "CHIP ID",        "VOLUME",  "BACK"},
     {&beep_menu, &wave_menu, NULL,             NULL,      NULL},
-    {No_op,      No_op,      Get_Audiochip_ID, SetVolume, Back_menu},
+    {Go_menu,    Go_menu,    Get_Audiochip_ID, SetVolume, Back_menu},
     Audio_Init,
     No_op,
     DISABLE,
@@ -186,7 +182,7 @@ menu_s main_menu = {
     5,
     {"LED",      "USB",      "ADC",      "AUDIO",      "SETTINGS"},
     {&led_menu,  &usb_menu,  &adc_menu,  &audio_menu,  &setting_menu},
-    {No_op,      No_op,      No_op,      No_op,        No_op},
+    {Go_menu,    Go_menu,    Go_menu,    Go_menu,      Go_menu},
     No_op,
     No_op,
     DISABLE,
@@ -198,33 +194,37 @@ menu_s main_menu = {
  * Menu function
  * *********************************************************************
  */
-void Main_menu(void)
-{
+void Main_menu() {
   Enter_menu(&main_menu);
 }
 
-void Back_menu(void)
-{
+void Back_menu() {
+  //Enter_menu(active_menu->prev_menu);
   brk_flag = 1;
-  RESET_ENC;
-  active_menu->DeInit();
+  //RESET_ENC;
+  //active_menu->DeInit();
 }
 
-void No_op(void)
-{
-
+void Sel_item() {
+  active_menu->action[cur_pos]();//run menu item function
 }
 
-void Next_item(void)
-{
+void No_op() {
+}
+
+void Go_menu() {
+  nxt_flag = 1;
+  //Enter_menu(active_menu->next_menu[cur_pos]);//enter next menu
+}
+
+void Next_item() {
   INCR_ENC(1);
 }
 
-void Prev_item(void)
-{
+void Prev_item() {
   DECR_ENC(1);
 }
-
+#if 0
 void Enter_menu(menu_s *menu)
 {
   RESET_ENC;//reset encoder counter
@@ -280,6 +280,78 @@ void Enter_menu(menu_s *menu)
     active_menu->butt[0]->action();
   }
   PCF8812_DELAY;
+  BREAK_OUT;//exit loop if set break flag
+  }
+}
+#endif
+
+void Enter_menu(menu_s *menu) {
+  RESET_ENC;//reset encoder counter
+  while(1) {
+  if(active_menu != menu) {
+      active_menu = menu;//set current menu
+        Set_Button(user_button, active_menu->butt[user_button]);
+  Set_Button(button_1, active_menu->butt[button_1]);
+  Set_Button(button_2, active_menu->butt[button_2]);
+  if(active_menu->init_flag == DISABLE) {//if no initialised
+      active_menu->Init();//execute initialisation
+      active_menu->init_flag = ENABLE;//set flag
+    }
+  }
+  PCF8812_Clear();//clear display
+  if(strcmp(active_menu->name, "MAIN") == 0)//if main menu
+    PCF8812_Time(view_all, 0);//view time in top of display
+  else
+    PCF8812_Title(active_menu->name);//else view menu name
+  PCF8812_Button(active_menu->butt[0]->name, active_menu->butt[1]->name, \
+             active_menu->butt[2]->name);
+  for(uint8_t i = 0; i < active_menu->num; i++)
+    PCF8812_Option(active_menu->option[i], i + 1);//view menu items
+  cur_pos = Get_Enc_Count(active_menu->num - 1);//get cursor position number
+  PCF8812_Cursor(cur_pos + 1);//view cursor
+
+
+#if 0
+/** handle button 1 pressing ******************************************/
+  if(Get_Button(button_1))//
+  {
+  if(active_menu->butt[1]->press_act == (p_func)0)//no set button action
+    if(active_menu->next_menu[cur_pos] == NULL)//no set next menu
+      active_menu->action[cur_pos]();//run menu item function
+    else
+    Enter_menu(active_menu->next_menu[cur_pos]);//enter next menu
+  else
+    active_menu->butt[1]->press_act();//run button function
+  }
+/** handle button 2 pressing ******************************************/
+  if(Get_Button(button_2))
+  {
+  if(active_menu->butt[2]->press_act == (p_func)0)
+    if(active_menu->next_menu[cur_pos] == NULL)
+      active_menu->action[cur_pos]();
+    else
+    Enter_menu(active_menu->next_menu[cur_pos]);
+  else
+    active_menu->butt[2]->press_act();
+  }
+/** handle user button pressing ***************************************/
+  if(Get_Button(user_button))
+  {
+  if(active_menu->butt[0]->press_act == (p_func)0)
+    if(active_menu->next_menu[cur_pos] == NULL)
+      active_menu->action[cur_pos]();
+    else
+    Enter_menu(active_menu->next_menu[cur_pos]);
+  else
+    active_menu->butt[0]->press_act();
+  }
+#endif
+  Execute_buttons();
+  PCF8812_DELAY;
+  if(nxt_flag) {
+      nxt_flag = 0;
+      Enter_menu(active_menu->next_menu[cur_pos]);
+  }
   BREAK_OUT;//exit loop if set break flag
   }
 }

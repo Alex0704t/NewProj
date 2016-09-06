@@ -11,23 +11,23 @@ int main()
   MCU_Init();
 
 ///*
-      button_s temp = {.enable = SET, .count = 0, .hold_act = LED3_Toggle, \
+      //button_s temp = {.name = "OK", .enable = SET, .count = 0, .hold_act = LED3_Toggle, \
           .press_act = LED1_Toggle, .repeat_ms = 300};
 //*/
 
  // button_s temp = {.enable = SET, .count = 0};
 
-      Set_Button(user_button, &temp);
+      //Set_Button(user_button, &temp);
+Main_menu();
 
 uint32_t count=0;
   while(1) {
 
-  //Main_menu();
 
+#if 0
+extern button_s butt[3];
 
-
-
-
+      PCF8812_Button(butt[0].name, butt[1].name, butt[2].name);
       uint8_t press = Get_Button(user_button);
       PCF8812_UValue("press", press, "",4);
       PCF8812_UValue("count", count, "",5);
@@ -44,7 +44,7 @@ uint32_t count=0;
       count++;
       PCF8812_Clear();
 //*/
-
+#endif
   }
 }
 

@@ -30,7 +30,6 @@ void ButtINT_Init(void) {
 
 
 uint8_t Get_Button(uint8_t button) {
-  PCF8812_UValue("state", butt[button].state, "", 3);
   return butt[button].state;
 }
 
@@ -68,29 +67,16 @@ void Button_Handle(uint8_t button) {
           if(butt[button].state != button_hold \
           && butt[button].count >= SHORT_PRESS_LIMIT) {
               butt[button].state = button_hold;
+              return;
   //no repeat mode
               if(!butt[button].repeat_ms) {
-                  butt[button].hold_act();
-                  //PCF8812_On();
-                  return;
-              }
-          }
-  //repeat mode
-          else if(butt[button].repeat_ms \
-              && butt[button].state == button_hold) {
-              if(butt[button].count >= 0) {
-                  butt[button].hold_act();
-                  //PCF8812_On();
-  //set negative value to counter according to repeat period
-                  butt[button].count = \
-                      butt[button].repeat_ms * PCF8812_F_RATE / -1000.0;
                   return;
               }
           }
       }
   //button released
       else {
-  //if set past hold delay increment counter
+  //increment counter if set past hold delay
           if(butt[button].count < 0)
               butt[button].count++;
   //reset button state & set delay past holding button
@@ -104,13 +90,11 @@ void Button_Handle(uint8_t button) {
                   butt[button].count = 0;
                   butt[button].state = button_released;
               }
-
   //button pressed
               else if(butt[button].count > CONTACT_BOUNCE_LIMIT \
               && butt[button].count < SHORT_PRESS_LIMIT) {
                   butt[button].state = button_pressed;
-                  butt[button].press_act();
-                  //PCF8812_On();
+                  //butt[button].press_act();
                   butt[button].count = 0;
                   return;
               }
@@ -118,11 +102,52 @@ void Button_Handle(uint8_t button) {
       }
 }
 
+void Exec_button(uint8_t button) {
+//execute short press action
+   if(butt[button].state == button_pressed) {
+       butt[button].press_act();
+       PCF8812_Butt_ind(button);
+       }
+//execute long press action
+   else if(butt[button].state == button_hold) {
+       PCF8812_Butt_ind(button);
+//once execute
+       if(!butt[button].repeat_ms) {
+           butt[button].hold_act();
+       }
+//repeat executing
+       else {
+           static uint32_t start = 0;
+           if(!start)
+             start = GetTick();
+           if((GetTick() - start) >= butt[button].repeat_ms) {
+               butt[button].hold_act();
+               start = GetTick();
+           }
+       }
+    }
+}
 
+void Execute_buttons() {
+  if(butt[user_button].enable) {
+      Exec_button(user_button);
+  }
+  if(butt[button_1].enable) {
+      Exec_button(button_1);
+  }
+  if(butt[button_2].enable) {
+      Exec_button(button_2);
+  }
+}
 
-void Set_Button(uint8_t button, button_s* in) {
-  butt[button] = (button_s){0};
+void Set_Button(uint8_t button, button_s *in) {
+  butt[button] = (button_s){};
+  if(!in->hold_act) {
+     in->hold_act = in->press_act;
+     in->repeat_ms = 500;
+  }
   butt[button] = *in;
+  //PCF8812_Button(butt[0].name, butt[1].name, butt[2].name);
 }
 
 uint8_t Check_Button(uint8_t button) {

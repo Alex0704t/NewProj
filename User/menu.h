@@ -20,7 +20,8 @@
 
 #define BREAK_OUT       if(brk_flag) {\
                         brk_flag = 0; \
-                        break; }
+                        active_menu->DeInit(); \
+                        break;}
 
 typedef void (*p_func)(void);
 
@@ -29,7 +30,7 @@ typedef struct {
   uint8_t name[OPT_LEN];//button name
 } butt_s;//button structure
 
-typedef struct menu{
+typedef struct menu {
   uint8_t* name;//menu name
   uint8_t num;//options num
   uint8_t *option[MAX_OPT];//options names
@@ -38,17 +39,20 @@ typedef struct menu{
   p_func Init;//initialisation function pointer
   p_func DeInit;//deinitialisation function pointer
   uint8_t init_flag;//initialisation flag
-  butt_s* butt[BUTT_NUM];//buttons functions
+  struct button_s* butt[BUTT_NUM];
+  //butt_s* butt[BUTT_NUM];//buttons functions
 }menu_s;//menu structure
 
 
 
 void Enter_menu(menu_s *menu);
-void Back_menu(void);
-void No_op(void);
-void Next_item(void);
-void Prev_item(void);
-void Main_menu(void);
+void Back_menu();
+void No_op();
+void Go_menu();
+void Sel_item();
+void Next_item();
+void Prev_item();
+void Main_menu();
 /*********************************************************************/
 void LED0_Toggle(void);
 void LED1_Toggle(void);
