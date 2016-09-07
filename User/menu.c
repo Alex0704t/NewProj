@@ -213,8 +213,7 @@ void No_op() {
 }
 
 void Go_menu() {
-  nxt_flag = 1;
-  //Enter_menu(active_menu->next_menu[cur_pos]);//enter next menu
+  Enter_menu(active_menu->next_menu[cur_pos]);//enter next menu
 }
 
 void Next_item() {
@@ -224,73 +223,14 @@ void Next_item() {
 void Prev_item() {
   DECR_ENC(1);
 }
-#if 0
-void Enter_menu(menu_s *menu)
-{
-  RESET_ENC;//reset encoder counter
-  while(1){
-  PCF8812_Clear();//clear display
-  active_menu = menu;//set current menu
-  if(active_menu->init_flag == DISABLE)//if no initialised
-    {
-      active_menu->Init();//execute initialisation
-      active_menu->init_flag = ENABLE;//set flag
-    }
-  if(strcmp(active_menu->name, "MAIN") == 0)//if main menu
-    PCF8812_Time(view_all, 0);//view time in top of display
-  else
-    PCF8812_Title(active_menu->name);//else view menu name
-  PCF8812_Button(active_menu->butt[0]->name, active_menu->butt[1]->name, \
-             active_menu->butt[2]->name);
-  for(uint8_t i = 0; i < active_menu->num; i++)
-    PCF8812_Option(active_menu->option[i], i + 1);//view menu items
-  cur_pos = Get_Enc_Count(active_menu->num - 1);//get cursor position number
-  PCF8812_Cursor(cur_pos + 1);//view cursor
-/** handle button 1 pressing ******************************************/
-  if(Get_Button(button_1))//
-  {
-  if(active_menu->butt[1]->action == (p_func)0)//no set button action
-    if(active_menu->next_menu[cur_pos] == NULL)//no set next menu
-      active_menu->action[cur_pos]();//run menu item function
-    else
-    Enter_menu(active_menu->next_menu[cur_pos]);//enter next menu
-  else
-    active_menu->butt[1]->action();//run button function
-  }
-/** handle button 2 pressing ******************************************/
-  if(Get_Button(button_2))
-  {
-  if(active_menu->butt[2]->action == (p_func)0)
-    if(active_menu->next_menu[cur_pos] == NULL)
-      active_menu->action[cur_pos]();
-    else
-    Enter_menu(active_menu->next_menu[cur_pos]);
-  else
-    active_menu->butt[2]->action();
-  }
-/** handle user button pressing ***************************************/
-  if(Get_Button(user_button))
-  {
-  if(active_menu->butt[0]->action == (p_func)0)
-    if(active_menu->next_menu[cur_pos] == NULL)
-      active_menu->action[cur_pos]();
-    else
-    Enter_menu(active_menu->next_menu[cur_pos]);
-  else
-    active_menu->butt[0]->action();
-  }
-  PCF8812_DELAY;
-  BREAK_OUT;//exit loop if set break flag
-  }
-}
-#endif
 
 void Enter_menu(menu_s *menu) {
   RESET_ENC;//reset encoder counter
   while(1) {
   if(active_menu != menu) {
       active_menu = menu;//set current menu
-        Set_Button(user_button, active_menu->butt[user_button]);
+  //set buttons parameters
+  Set_Button(user_button, active_menu->butt[user_button]);
   Set_Button(button_1, active_menu->butt[button_1]);
   Set_Button(button_2, active_menu->butt[button_2]);
   if(active_menu->init_flag == DISABLE) {//if no initialised
@@ -304,54 +244,13 @@ void Enter_menu(menu_s *menu) {
   else
     PCF8812_Title(active_menu->name);//else view menu name
   PCF8812_Button(active_menu->butt[0]->name, active_menu->butt[1]->name, \
-             active_menu->butt[2]->name);
+             active_menu->butt[2]->name);//view buttons names
   for(uint8_t i = 0; i < active_menu->num; i++)
     PCF8812_Option(active_menu->option[i], i + 1);//view menu items
   cur_pos = Get_Enc_Count(active_menu->num - 1);//get cursor position number
   PCF8812_Cursor(cur_pos + 1);//view cursor
-
-
-#if 0
-/** handle button 1 pressing ******************************************/
-  if(Get_Button(button_1))//
-  {
-  if(active_menu->butt[1]->press_act == (p_func)0)//no set button action
-    if(active_menu->next_menu[cur_pos] == NULL)//no set next menu
-      active_menu->action[cur_pos]();//run menu item function
-    else
-    Enter_menu(active_menu->next_menu[cur_pos]);//enter next menu
-  else
-    active_menu->butt[1]->press_act();//run button function
-  }
-/** handle button 2 pressing ******************************************/
-  if(Get_Button(button_2))
-  {
-  if(active_menu->butt[2]->press_act == (p_func)0)
-    if(active_menu->next_menu[cur_pos] == NULL)
-      active_menu->action[cur_pos]();
-    else
-    Enter_menu(active_menu->next_menu[cur_pos]);
-  else
-    active_menu->butt[2]->press_act();
-  }
-/** handle user button pressing ***************************************/
-  if(Get_Button(user_button))
-  {
-  if(active_menu->butt[0]->press_act == (p_func)0)
-    if(active_menu->next_menu[cur_pos] == NULL)
-      active_menu->action[cur_pos]();
-    else
-    Enter_menu(active_menu->next_menu[cur_pos]);
-  else
-    active_menu->butt[0]->press_act();
-  }
-#endif
   Execute_buttons();
   PCF8812_DELAY;
-  if(nxt_flag) {
-      nxt_flag = 0;
-      Enter_menu(active_menu->next_menu[cur_pos]);
-  }
   BREAK_OUT;//exit loop if set break flag
   }
 }
@@ -387,6 +286,7 @@ void LED_all_Toggle(void)
 /*********************************************************************/
 void LED0_Bright(void)
 {
+  Led_Toggle(green);
   Led_Brightness(green, "LED0 (GREEN)");
 }
 

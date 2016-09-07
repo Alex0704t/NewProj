@@ -35,13 +35,11 @@ void Led_Set(uint8_t led, uint8_t value)
   }
 }
 
-void Led_Brightness(uint8_t led, uint8_t *name)
-{
+void Led_Brightness(uint8_t led, uint8_t *name) {
   static uint8_t bright = 0;
   RESET_BLINK(led);
   RESET_ENC;
-  while(1)
-  {
+  while(1) {
   PCF8812_Clear();
   PCF8812_Title(name);
   PCF8812_Button("OK", "-10%", "+10%");

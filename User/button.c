@@ -30,7 +30,10 @@ void ButtINT_Init(void) {
 
 
 uint8_t Get_Button(uint8_t button) {
-  return butt[button].state;
+  uint8_t temp = butt[button].state;
+  butt[button].state = button_released;
+  return temp;
+
 }
 
 void EXTI0_IRQHandler(void) {
@@ -94,8 +97,8 @@ void Button_Handle(uint8_t button) {
               else if(butt[button].count > CONTACT_BOUNCE_LIMIT \
               && butt[button].count < SHORT_PRESS_LIMIT) {
                   butt[button].state = button_pressed;
-                  //butt[button].press_act();
-                  butt[button].count = 0;
+                  butt[button].count = PAST_HOLD_DELAY;
+                  //butt[button].count = 0;
                   return;
               }
           }
@@ -105,8 +108,10 @@ void Button_Handle(uint8_t button) {
 void Exec_button(uint8_t button) {
 //execute short press action
    if(butt[button].state == button_pressed) {
+       butt[button].state = button_released;
        butt[button].press_act();
        PCF8812_Butt_ind(button);
+
        }
 //execute long press action
    else if(butt[button].state == button_hold) {

@@ -25,11 +25,6 @@
 
 typedef void (*p_func)(void);
 
-typedef struct {
-  p_func action;//button function
-  uint8_t name[OPT_LEN];//button name
-} butt_s;//button structure
-
 typedef struct menu {
   uint8_t* name;//menu name
   uint8_t num;//options num
@@ -40,7 +35,6 @@ typedef struct menu {
   p_func DeInit;//deinitialisation function pointer
   uint8_t init_flag;//initialisation flag
   struct button_s* butt[BUTT_NUM];
-  //butt_s* butt[BUTT_NUM];//buttons functions
 }menu_s;//menu structure
 
 
