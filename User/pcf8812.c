@@ -270,8 +270,9 @@ void PCF8812_Hex_Value(uint8_t *name, int32_t value, uint8_t line) {
   snprintf(str, PCF8812_STR_SIZ, "%.*s %#x", name_wide, name, value);
   PCF8812_Putline_Centre(str, line);
 }
-
-void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line) {
+#ifdef USE_SPRINTF
+void PCF8812_Float_Value(uint8_t *name, double
+                         value, uint8_t *unit, uint8_t line) {
   uint8_t str[PCF8812_STR_SIZ];
   uint8_t float_prec = 6;
   uint8_t name_len = strlen(name);
@@ -285,6 +286,28 @@ void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line
   snprintf(str, PCF8812_STR_SIZ, "%.*s% .*g%.3s", name_wide, name, float_prec, value, unit);
   PCF8812_Putline_Centre(str, line);
 }
+#else
+
+char *  _EXFUN(gcvt,(double,int,char *));
+//char *  _EXFUN(gcvtf,(float,int,char *));
+//char *  _EXFUN(fcvt,(double,int,int *,int *));
+//char *  _EXFUN(fcvtf,(float,int,int *,int *));
+//char *  _EXFUN(ecvt,(double,int,int *,int *));
+//char *  _EXFUN(ecvtbuf,(double, int, int*, int*, char *));
+//char *  _EXFUN(fcvtbuf,(double, int, int*, int*, char *));
+//char *  _EXFUN(ecvtf,(float,int,int *,int *));
+
+void PCF8812_Float_Value(uint8_t *name, double value, uint8_t *unit, uint8_t line) {
+  uint8_t str[PCF8812_STR_SIZ];
+  uint8_t f_str[PCF8812_STR_SIZ];
+  int prec = 6;
+  uint8_t name_len = strlen(name);
+  uint8_t name_wide = (name_len > 5) ? 5 : name_len;
+  gcvt(value, prec, f_str);
+  snprintf(str, PCF8812_STR_SIZ, "%.*s% s%.3s", name_wide, name, f_str, unit);
+  PCF8812_Putline_Centre(str, line);
+}
+#endif
 
 void PCF8812_Percent(uint8_t *name, int8_t value, uint8_t line) {
   uint8_t column = 0, i = 0;

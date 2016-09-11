@@ -10,6 +10,8 @@
 
 #include "../Device/stm32f4xx.h"
 #include "../main.h"
+//#include <stdlib.h>
+//#define USE_SPRINTF
 
 
 #define PCF8812_POW_ON()            GPIOD->BSRR = GPIO_BSRR_BS_8
@@ -337,7 +339,7 @@ void PCF8812_Putline_Right(uint8_t* s, uint8_t line);
 void PCF8812_SValue(uint8_t *name, int32_t value, uint8_t *unit, uint8_t line);
 void PCF8812_UValue(uint8_t *name, uint32_t value, uint8_t *unit, uint8_t line);
 void PCF8812_Hex_Value(uint8_t *name, int32_t value, uint8_t line);
-void PCF8812_Float_Value(uint8_t *name, float value, uint8_t *unit, uint8_t line);
+void PCF8812_Float_Value(uint8_t *name, double value, uint8_t *unit, uint8_t line);
 void PCF8812_Percent(uint8_t *name, int8_t value, uint8_t line);
 void PCF8812_Set_bit(uint8_t x, uint8_t y);
 void PCF8812_Clr_bit(uint8_t x, uint8_t y);
