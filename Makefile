@@ -29,17 +29,12 @@ INC_DIRS:=			. $(STM_CORE_DIR) $(STM_DIR)
 SRC_DIRS:=			. $(STM_DIR)
 LIBS:=					libgcc libm libc
 LIB_DIRS:=
+
 USER_DIR:=			User
 include $(USER_DIR)/Makefile
-#include User/Makefile
-#HAL_DIR:=				Drivers/STM32F4xx_HAL_Driver
-#include $(HAL_DIR)/Makefile
-#BSP_DIR:=				Drivers/BSP
-#include $(BSP_DIR)/Makefile
-#PDM_DIR:=				Middlewares/ST/STM32_Audio/Addons/PDM
-#include $(PDM_DIR)/Makefile	
-#USBD_DIR:=			Middlewares/ST/STM32_USB_Device_Library
-#include $(USBD_DIR)/Makefile	
+USB_DIR:=				ub_lib
+#USB_DIR:=				USB
+include $(USB_DIR)/Makefile
 
 SRCS:=					$(wildcard $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c)))
 OBJS:=    			$(SRCS:.c=.o)

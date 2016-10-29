@@ -26,6 +26,7 @@
 #include "../Device/stm32f4xx.h"
 __IO int32_t ITM_RxBuffer;
 
+#include "usb.h"
 #include "user.h"
 
 #ifndef NULL

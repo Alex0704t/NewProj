@@ -11,12 +11,11 @@
 
 //#include "../Device/stm32f4xx.h"
 #include "main.h"
-//#include "usb.h"
 
 #define MAX_OPT         6
 #define OPT_LEN         16
 #define BUTT_NUM        3
-#define USB_SEND_PERIOD 500
+#define USB_SEND_PERIOD 1000
 
 #define BREAK_OUT       if(brk_flag) {\
                         brk_flag = 0; \

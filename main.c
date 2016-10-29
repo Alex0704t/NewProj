@@ -5,18 +5,14 @@
 #include "main.h"
 
 
-
 int main()
 {
   MCU_Init();
-
-
   Main_menu();
-
 
   while(1) {
 
-
+      USB_Echo();
 
   }
 }
@@ -31,6 +27,7 @@ void MCU_Init() {
   PCF8812_Init();
   RTC_Init();
   PCF8812_Test();
+  UB_USB_CDC_Init();
   //SCB->CPACR |= 0x00F00000;//enable FPU
   //Audio_Init();
   //AnalogWave_Init(1000, 30);

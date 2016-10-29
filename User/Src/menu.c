@@ -107,8 +107,7 @@ menu_s usb_menu = {
     3,
     {"ECHO",   "COUNT",    "BACK"},
     {NULL,     NULL,       NULL},
-//    {Usb_Echo, Send_Count, Back_menu},
-    {No_op,    No_op,      Back_menu},
+    {USB_Echo, Send_Count, Back_menu},
     No_op,
     No_op,
     DISABLE,
@@ -341,7 +340,7 @@ void LED_all_Blink(void)
  */
 void Send_Count(void)
 {
-  //Usb_Count(USB_SEND_PERIOD);
+  USB_Count(USB_SEND_PERIOD);
 }
 
 /*
