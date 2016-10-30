@@ -9,7 +9,6 @@
 #define USER_MENU_H_
 
 
-//#include "../Device/stm32f4xx.h"
 #include "main.h"
 
 #define MAX_OPT         6

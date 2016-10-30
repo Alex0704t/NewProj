@@ -13,8 +13,8 @@ void USB_Echo(void)
   while(1)
   {
     PCF8812_Clear();
-    PCF8812_Putline("USB ECHO", 0);
-    PCF8812_Putline("Push <User>  EXIT", 5);
+    PCF8812_Title("USB ECHO");
+    PCF8812_Button("EXIT", "", "");
     if(UB_USB_CDC_GetStatus() == USB_CDC_CONNECTED)//check USB plug to PC
     {
 		  check = UB_USB_CDC_ReceiveString(buf);//check data received via USB
@@ -40,26 +40,28 @@ void USB_Count(uint32_t period)
   while(1)
   {
     PCF8812_Clear();
-    PCF8812_Putline("USB COUNT", 0);
+    PCF8812_Title("USB COUNT");
     PCF8812_UValue("count", i, "", 2);
-    //PCF8812_Button(button_1, "STOP");
-    PCF8812_Putline("Push <User>  EXIT", 5);
-    USB_Send_Int(i);
-    PCF8812_On();
-    i++;
-    delay_ms(period);
+    PCF8812_Button("END", "PAUSE", "PAUSE");
+    if(!Check_delay_ms(period)) {
+        USB_Send_Int(i);
+        PCF8812_On();
+        i++;
+    }
+    PCF8812_DELAY;
+    //delay_ms(period);
     if(Get_Button(user_button))
             break;
     if(Get_Button(button_1))
-    while(1)
-    {
-      //PCF8812_Button(button_1, "RESUME");
-      //PCF8812_Butt_ind(clear_ind);
-     if(Get_Button(button_1))
-             break;
-     if(Get_Button(user_button))
-             break;
-    }
+      while(1)
+      {
+        PCF8812_Button("END", "RESUME", "RESUME");
+        //PCF8812_Butt_ind(clear_ind);
+       if(Get_Button(button_1))
+               break;
+       if(Get_Button(user_button))
+               break;
+      }
   }
 }
 

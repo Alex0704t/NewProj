@@ -462,7 +462,7 @@ void PCF8812_Cursor(uint8_t line) {
 }
 
 void PCF8812_Button(uint8_t* butt_u, uint8_t* butt_1, uint8_t* butt_2) {
-  uint8_t str[PCF8812_STR_SIZ];
+  uint8_t str[PCF8812_STR_SIZ] = "";
   uint8_t sp_num = 0;
   uint8_t len_1 = strlen(butt_1);
   uint8_t len_2 = strlen(butt_2);
